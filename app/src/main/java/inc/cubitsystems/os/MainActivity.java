@@ -6,6 +6,8 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -18,6 +20,11 @@ public class MainActivity extends AppCompatActivity {
     private static final String PKG_ASSIMILATE = "inc.cubitsystems.assimilate";
     private static final String URL_HQ = "https://drive.google.com/drive/folders/1P-bh17Tn0NrmVDwDpKZEQ9Jf5ES0mBsf";
     private static final String URL_CONNECTION = "https://drive.google.com/drive/folders/1zPE1YjRzPJBKxr9bmUm1jD3g5idjVMIW";
+    private static final String ASSET_HOME = "file:///android_asset/index.html";
+    private static final String ASSET_PLAY = "file:///android_asset/play/index.html";
+    private static final String ASSET_GLOW =
+            "file:///android_asset/play/games/under-the-glow/index.html?access=founder&play=1&console=cubit";
+    private static final String ASSET_LABS = "file:///android_asset/labs/experience.html";
 
     private WebView webView;
 
@@ -30,9 +37,32 @@ public class MainActivity extends AppCompatActivity {
         WebSettings s = webView.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
-        webView.setWebViewClient(new WebViewClient());
+        s.setMediaPlaybackRequiresUserGesture(false);
+        s.setAllowFileAccess(true);
+        s.setAllowContentAccess(true);
+        // Required for file:/// pages to load relative file assets on many WebViews
+        try {
+            s.setAllowFileAccessFromFileURLs(true);
+            s.setAllowUniversalAccessFromFileURLs(true);
+        } catch (Throwable ignored) {}
+        webView.setWebChromeClient(new WebChromeClient());
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                return false; // always load in-place
+            }
+        });
         webView.addJavascriptInterface(new Bridge(), "CubitOS");
-        webView.loadUrl("file:///android_asset/index.html");
+        webView.loadUrl(ASSET_HOME);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (webView != null && webView.canGoBack()) {
+            webView.goBack();
+            return;
+        }
+        super.onBackPressed();
     }
 
     private void launchPackage(String pkg, String label) {
@@ -41,13 +71,8 @@ public class MainActivity extends AppCompatActivity {
         if (launch != null) {
             startActivity(launch);
         } else {
-            Toast.makeText(this, label + " not installed — install suite APK", Toast.LENGTH_LONG).show();
-            eval("log('" + label + " not installed')");
+            Toast.makeText(this, label + " not installed", Toast.LENGTH_LONG).show();
         }
-    }
-
-    private void eval(String js) {
-        if (webView != null) webView.post(() -> webView.evaluateJavascript(js, null));
     }
 
     public class Bridge {
@@ -56,6 +81,12 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(() -> {
                 if (id == null) return;
                 switch (id) {
+                    case "play":
+                        webView.loadUrl(ASSET_PLAY);
+                        break;
+                    case "labs":
+                        webView.loadUrl(ASSET_LABS);
+                        break;
                     case "library":
                         launchPackage(PKG_LIBRARY, "Library");
                         break;
@@ -65,12 +96,6 @@ public class MainActivity extends AppCompatActivity {
                     case "hq":
                         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(URL_HQ)));
                         break;
-                    case "play":
-                        webView.loadUrl("file:///android_asset/play/index.html");
-                        break;
-                    case "labs":
-                        webView.loadUrl("file:///android_asset/labs/experience.html");
-                        break;
                     case "connection":
                         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(URL_CONNECTION)));
                         break;
@@ -78,6 +103,22 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(MainActivity.this, "Unknown module", Toast.LENGTH_SHORT).show();
                 }
             });
+        }
+
+        @JavascriptInterface
+        public void openGame(String id) {
+            runOnUiThread(() -> {
+                if ("under-the-glow".equals(id)) {
+                    webView.loadUrl(ASSET_GLOW);
+                } else {
+                    Toast.makeText(MainActivity.this, "Unknown game", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void openOsHome(String ignored) {
+            runOnUiThread(() -> webView.loadUrl(ASSET_HOME));
         }
     }
 }

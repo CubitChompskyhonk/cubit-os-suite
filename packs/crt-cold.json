@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "id": "crt-cold",
+  "name": "CRT Cold",
+  "author": "Cubit Labs",
+  "license": "Cubit internal",
+  "packs": { "crt": true, "grade": true, "hud": true, "guide": false, "vig": true }
+}

@@ -21,7 +21,7 @@
     .sub { color: var(--mute); font-size: 0.8rem; margin-bottom: 14px; line-height: 1.4; }
     .screen {
       max-width: 480px; margin: 0 auto 14px; border: 3px solid #1a2030; border-radius: 12px;
-      background: #000; aspect-ratio: 4/3; overflow: hidden; position: relative;
+      background: #000; aspect-ratio: 3/4; min-height: 70dvh; overflow: hidden; position: relative;
       box-shadow: 0 0 0 1px #3a4558, 0 12px 40px rgba(0,0,0,0.5);
     }
     .screen iframe { width: 100%; height: 100%; border: 0; }
@@ -83,7 +83,7 @@
       }
     }
     function launch(id) {
-      const paths = { 'under-the-glow': 'games/under-the-glow/index.html' };
+      const paths = { 'under-the-glow': 'games/under-the-glow/index.html?access=founder&play=1&console=cubit' };
       const path = paths[id];
       if (!path) return;
       const hint = document.getElementById('hint');
@@ -91,6 +91,7 @@
       hint.hidden = true;
       frame.hidden = false;
       frame.src = path;
+      frame.removeAttribute('hidden');
       try {
         localStorage.setItem('cubit_play_session', JSON.stringify({
           schema: 1, console: 'Cubit Play', game: id, profile: 'n64-class', ts: Date.now()

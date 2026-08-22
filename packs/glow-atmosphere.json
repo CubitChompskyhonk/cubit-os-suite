@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "id": "glow-atmosphere",
+  "name": "Glow atmosphere",
+  "author": "Cubit Games",
+  "license": "Cubit internal",
+  "packs": { "crt": true, "grade": true, "hud": true, "guide": true, "vig": true }
+}

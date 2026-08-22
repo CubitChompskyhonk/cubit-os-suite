@@ -6,7 +6,7 @@
   <title>Under the Glow</title>
   <meta name="theme-color" content="#07060b" />
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
+    /* fonts: system fallback for offline / WebView */
     :root {
       --bg: #07060b; --ink: #e4dcd2; --mute: #6e6878; --bad: #d06070; --ok: #7a9e82;
       --line: #1e1a28; --accent: #9b8cff; --tv: #7ec8ff;
@@ -263,9 +263,11 @@
   <script>
 (function () {
   const params = new URLSearchParams(location.search);
-  const isFounder = params.get('access') === 'founder' || localStorage.getItem('utg_founder') === '1';
-  if (params.get('access') === 'founder') localStorage.setItem('utg_founder', '1');
-  let unlocked = isFounder || localStorage.getItem('utg_unlocked') === '1' || params.get('paid') === '1';
+  const underPlay = /\/play\//.test(location.pathname) || params.get('play') === '1' || params.get('console') === 'cubit';
+  const isFounder = params.get('access') === 'founder' || localStorage.getItem('utg_founder') === '1' || underPlay;
+  if (params.get('access') === 'founder' || underPlay) localStorage.setItem('utg_founder', '1');
+  let unlocked = isFounder || localStorage.getItem('utg_unlocked') === '1' || params.get('paid') === '1' || underPlay;
+  if (underPlay) localStorage.setItem('utg_unlocked', '1');
   if (params.get('paid') === '1') localStorage.setItem('utg_unlocked', '1');
 
   
@@ -292,7 +294,7 @@
 
   
   const ART = {
-    kitchen: 'https://cdn.jsdelivr.net/gh/CubitChompskyhonk/cubit-games@main/docs/assets/kitchen-317.jpg'
+    kitchen: 'assets/kitchen-317.jpg'
   };
 
   const TAPES = {
@@ -692,7 +694,7 @@
     const frame = document.getElementById('fmv-frame');
     const vid = document.getElementById('death-vid');
     if (vid) {
-      vid.src = 'https://cdn.jsdelivr.net/gh/CubitChompskyhonk/cubit-games@main/docs/assets/death-static.mp4';
+      vid.src = 'assets/death-static.mp4';
       vid.currentTime = 0;
       if (frame) frame.classList.add('has-video');
       const p = vid.play();
@@ -863,7 +865,7 @@
     viewEl.classList.toggle('tv-room', roomId === 'tv');
     invEl.textContent = 'Carrying: ' + (inv.length ? inv.join(', ') : 'nothing');
     playerEl.style.left = px + '%'; playerEl.style.top = py + '%';
-    document.getElementById('founder').textContent = isFounder ? 'FOUNDER · pay waived · v0.15' : '';
+    document.getElementById('founder').textContent = isFounder ? 'FOUNDER · pay waived · v0.16' : '';
     ['n','s','e','w'].forEach(d => {
       document.getElementById('hint-' + d).textContent = r.exits[d] ? d.toUpperCase() : '';
     });
@@ -1126,7 +1128,7 @@
   document.body.addEventListener('touchstart', function once() { ensureAudio(); document.body.removeEventListener('touchstart', once); }, { passive: true });
 
   loadStatus();
-  say('Under the Glow v0.15 — tapes, denser ASCII sets, CRT. Look under the glow for guidance.', 'sys');
+  say('Under the Glow v0.16 — Cubit Play ready. Local assets. Look under the glow for guidance.', 'sys');
   if (isFounder) say('FOUNDER RELEASE — pay waived.', 'ok');
   render();
   cmd.focus();

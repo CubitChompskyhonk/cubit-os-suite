@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "console": "Cubit Play",
+  "profile": "n64-class",
+  "games": [
+    {
+      "id": "under-the-glow",
+      "title": "Under the Glow",
+      "version": "0.14+",
+      "path": "games/under-the-glow/index.html",
+      "profile": "n64-class",
+      "publisher": "Cubit Games",
+      "description": "Surreal horror under the TV glow"
+    }
+  ]
+}

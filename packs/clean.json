@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "id": "clean",
+  "name": "Clean frame",
+  "author": "Cubit Labs",
+  "license": "Cubit internal",
+  "packs": { "crt": false, "grade": false, "hud": false, "guide": false, "vig": false }
+}

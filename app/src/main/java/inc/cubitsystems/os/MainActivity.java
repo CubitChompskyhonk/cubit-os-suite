@@ -65,6 +65,9 @@ public class MainActivity extends AppCompatActivity {
                     case "hq":
                         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(URL_HQ)));
                         break;
+                    case "play":
+                        webView.loadUrl("file:///android_asset/play/index.html");
+                        break;
                     case "labs":
                         webView.loadUrl("file:///android_asset/labs/experience.html");
                         break;

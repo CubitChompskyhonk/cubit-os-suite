@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Cubit Experience Layer</title>
+  <style>
+    :root { --bg:#0a0c10; --card:#141a24; --line:#2a3142; --text:#eef1f6; --mute:#8b93a7; --ok:#3dd68c; --accent:#5b8cff; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100dvh; padding: 12px; }
+    .brand { color: var(--ok); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; }
+    h1 { font-size: 1.15rem; margin: 4px 0; }
+    .sub { color: var(--mute); font-size: 0.78rem; margin-bottom: 10px; line-height: 1.35; }
+    .stage {
+      position: relative; width: 100%; max-width: 480px; margin: 0 auto 12px;
+      aspect-ratio: 4/3; background: #000; border-radius: 8px; overflow: hidden;
+      border: 1px solid var(--line);
+    }
+    canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; max-width: 480px; margin: 0 auto 10px; }
+    .card h2 { font-size: 0.7rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+    .row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #1e2533; }
+    .row:last-child { border-bottom: none; }
+    .title { font-size: 0.88rem; font-weight: 600; }
+    .desc { font-size: 0.7rem; color: var(--mute); }
+    .sw { position: relative; width: 46px; height: 26px; }
+    .sw input { opacity: 0; width: 0; height: 0; }
+    .sw span { position: absolute; inset: 0; background: #2a3142; border-radius: 999px; cursor: pointer; }
+    .sw span:before { content: ""; position: absolute; width: 20px; height: 20px; left: 3px; top: 3px; background: #cfd6e6; border-radius: 50%; transition: 0.15s; }
+    .sw input:checked + span { background: #2a5080; }
+    .sw input:checked + span:before { transform: translateX(20px); background: #9ec0ff; }
+    button {
+      width: 100%; max-width: 480px; margin: 8px auto; display: block; padding: 12px;
+      border-radius: 11px; border: 1px solid var(--accent); background: #1a3050; color: #cfe0ff; font-weight: 700;
+    }
+    .note { max-width: 480px; margin: 8px auto; font-size: 0.72rem; color: var(--mute); line-height: 1.4; }
+  </style>
+</head>
+<body>
+  <div class="brand">CUBIT LABS · EXPERIENCE LAYER v0.1</div>
+  <h1>Hardware assimilation spike</h1>
+  <p class="sub">Emulator-path demo: toggle packs change what appears on screen. Placeholder scene only — no commercial ROMs.</p>
+
+  <div class="stage"><canvas id="c" width="320" height="240"></canvas></div>
+
+  <div class="card">
+    <h2>Experience packs</h2>
+    <div class="row">
+      <div><div class="title">CRT / scanlines</div><div class="desc">Tube look on the frame</div></div>
+      <label class="sw"><input type="checkbox" id="crt" checked /><span></span></label>
+    </div>
+    <div class="row">
+      <div><div class="title">Color grade</div><div class="desc">Cold blue night shift</div></div>
+      <label class="sw"><input type="checkbox" id="grade" checked /><span></span></label>
+    </div>
+    <div class="row">
+      <div><div class="title">HUD overlay</div><div class="desc">Cubit session chrome</div></div>
+      <label class="sw"><input type="checkbox" id="hud" checked /><span></span></label>
+    </div>
+    <div class="row">
+      <div><div class="title">Guide layer</div><div class="desc">Soft path hint</div></div>
+      <label class="sw"><input type="checkbox" id="guide" /><span></span></label>
+    </div>
+    <div class="row">
+      <div><div class="title">Vignette</div><div class="desc">Edge falloff</div></div>
+      <label class="sw"><input type="checkbox" id="vig" checked /><span></span></label>
+    </div>
+  </div>
+
+  <button type="button" onclick="runExperience()">Run experience</button>
+  <p class="note">Doctrine: Layer A (software host). User would supply their own game image in a full build. This spike proves toggles alter the visible frame.</p>
+
+  <script>
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('2d');
+    let t = 0;
+    let packs = { crt: true, grade: true, hud: true, guide: false, vig: true };
+
+    function readToggles() {
+      packs.crt = document.getElementById('crt').checked;
+      packs.grade = document.getElementById('grade').checked;
+      packs.hud = document.getElementById('hud').checked;
+      packs.guide = document.getElementById('guide').checked;
+      packs.vig = document.getElementById('vig').checked;
+    }
+
+    function runExperience() {
+      readToggles();
+    }
+
+    document.querySelectorAll('.sw input').forEach(el => el.addEventListener('change', runExperience));
+
+    function drawBase() {
+      // faux “low-poly room” game frame
+      const g = ctx.createLinearGradient(0, 0, 0, 240);
+      g.addColorStop(0, '#1a2840');
+      g.addColorStop(1, '#0c1018');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, 320, 240);
+
+      // floor
+      ctx.fillStyle = '#2a3548';
+      ctx.beginPath();
+      ctx.moveTo(0, 180); ctx.lineTo(160, 120); ctx.lineTo(320, 180); ctx.lineTo(320, 240); ctx.lineTo(0, 240);
+      ctx.fill();
+
+      // spinning “crystal” stand-in for game content
+      const cx = 160 + Math.sin(t * 0.03) * 8;
+      const cy = 110 + Math.cos(t * 0.02) * 4;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(t * 0.02);
+      ctx.fillStyle = '#6ec8ff';
+      ctx.beginPath();
+      ctx.moveTo(0, -28); ctx.lineTo(22, 0); ctx.lineTo(0, 28); ctx.lineTo(-22, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#b8ecff';
+      ctx.beginPath();
+      ctx.moveTo(0, -28); ctx.lineTo(10, -6); ctx.lineTo(0, 0); ctx.lineTo(-10, -6);
+      ctx.fill();
+      ctx.restore();
+
+      // faux N64-ish caption
+      ctx.fillStyle = 'rgba(0,0,0,0.35)';
+      ctx.fillRect(8, 200, 140, 28);
+      ctx.fillStyle = '#cde';
+      ctx.font = '10px monospace';
+      ctx.fillText('SESSION DEMO · NO ROM', 14, 218);
+    }
+
+    function applyGrade() {
+      if (!packs.grade) return;
+      ctx.fillStyle = 'rgba(40, 80, 140, 0.18)';
+      ctx.fillRect(0, 0, 320, 240);
+    }
+
+    function applyVignette() {
+      if (!packs.vig) return;
+      const vg = ctx.createRadialGradient(160, 120, 40, 160, 120, 180);
+      vg.addColorStop(0, 'rgba(0,0,0,0)');
+      vg.addColorStop(1, 'rgba(0,0,0,0.55)');
+      ctx.fillStyle = vg;
+      ctx.fillRect(0, 0, 320, 240);
+    }
+
+    function applyCRT() {
+      if (!packs.crt) return;
+      for (let y = 0; y < 240; y += 2) {
+        ctx.fillStyle = 'rgba(0,0,0,0.15)';
+        ctx.fillRect(0, y, 320, 1);
+      }
+      ctx.strokeStyle = 'rgba(120,180,255,0.08)';
+      ctx.strokeRect(1, 1, 318, 238);
+    }
+
+    function applyHUD() {
+      if (!packs.hud) return;
+      ctx.fillStyle = 'rgba(10, 20, 35, 0.75)';
+      ctx.fillRect(0, 0, 320, 18);
+      ctx.fillStyle = '#3dd68c';
+      ctx.font = '9px monospace';
+      ctx.fillText('CUBIT EXPERIENCE · LAYER A', 6, 12);
+      ctx.fillStyle = '#8b93a7';
+      ctx.fillText('install local · user media only', 180, 12);
+    }
+
+    function applyGuide() {
+      if (!packs.guide) return;
+      ctx.strokeStyle = 'rgba(91, 140, 255, 0.5)';
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(40, 200);
+      ctx.quadraticCurveTo(120, 150, 160, 110);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(91, 140, 255, 0.8)';
+      ctx.font = '9px monospace';
+      ctx.fillText('GUIDE', 42, 196);
+    }
+
+    function frame() {
+      t++;
+      drawBase();
+      applyGrade();
+      applyGuide();
+      applyVignette();
+      applyCRT();
+      applyHUD();
+      requestAnimationFrame(frame);
+    }
+    runExperience();
+    frame();
+  </script>
+</body>
+</html>

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Cubit OS</title>
   <style>
-    :root { --bg:#0a0c10; --card:#141a24; --line:#2a3142; --text:#eef1f6; --mute:#8b93a7; --ok:#3dd68c; --accent:#5b8cff; }
+    :root { --bg:#0a0c10; --card:#141a24; --line:#2a3142; --text:#eef1f6; --mute:#8b93a7; --ok:#3dd68c; --accent:#5b8cff; --gold:#c9a227; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100dvh; padding: 20px 16px 36px; }
     .brand { color: var(--ok); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; }
@@ -14,58 +14,62 @@
     .grid { display: grid; gap: 12px; }
     .tile {
       background: var(--card); border: 1px solid var(--line); border-radius: 14px;
-      padding: 16px; text-align: left; color: var(--text);
-      width: 100%; font: inherit; cursor: pointer;
+      padding: 16px; text-align: left; color: var(--text); width: 100%; font: inherit; cursor: pointer;
     }
-    .tile:active { border-color: var(--accent); }
+    .tile.play { border-color: #5a4a20; background: linear-gradient(180deg, #1a1810, #141a24); }
     .tile h2 { font-size: 1.05rem; margin-bottom: 4px; }
     .tile p { color: var(--mute); font-size: 0.8rem; line-height: 1.35; }
     .tag { display: inline-block; margin-top: 8px; font-size: 0.65rem; color: var(--accent); letter-spacing: 0.04em; }
+    .tile.play .tag { color: var(--gold); }
     .foot { margin-top: 18px; font-size: 0.72rem; color: var(--mute); }
     #log { margin-top: 10px; font-family: monospace; font-size: 0.72rem; color: var(--mute); white-space: pre-wrap; }
   </style>
 </head>
 <body>
-  <div class="brand">CUBIT SUITE · OS v1.2.0</div>
+  <div class="brand">CUBIT SUITE · OS v1.3.0</div>
   <h1>Head Offices</h1>
-  <p class="sub">Launcher for the Cubit package suite. Open modules on this device or HQ in the cloud.</p>
+  <p class="sub">Suite home. <strong>Cubit Play</strong> is the virtual console for first-party games.</p>
   <div class="grid">
+    <button type="button" class="tile play" onclick="openMod('play')">
+      <h2>Cubit Play</h2>
+      <p>Virtual console · N64-class profile · Under the Glow</p>
+      <span class="tag">CONSOLE · FIRST-PARTY</span>
+    </button>
     <button type="button" class="tile" onclick="openMod('assimilate')">
       <h2>Assimilate</h2>
-      <p>Permission console · Run intake · Share to your vault</p>
+      <p>Permission console · device intake</p>
       <span class="tag">MODULE · DEVICE</span>
     </button>
     <button type="button" class="tile" onclick="openMod('library')">
       <h2>Library</h2>
-      <p>Browse files and suite paths on device</p>
+      <p>Files and suite paths</p>
       <span class="tag">MODULE · FILES</span>
+    </button>
+    <button type="button" class="tile" onclick="openMod('labs')">
+      <h2>Labs · Experience</h2>
+      <p>Experimental cores & packs (Chip-8) — not the console storefront</p>
+      <span class="tag">LABS · EXPERIMENTAL</span>
     </button>
     <button type="button" class="tile" onclick="openMod('hq')">
       <h2>HQ · Drive</h2>
-      <p>Cubit Systems Head Offices (cloud VRE)</p>
+      <p>Head Offices cloud VRE</p>
       <span class="tag">HQ · CLOUD</span>
-    </button>
-    
-    <button type="button" class="tile" onclick="openMod('labs')">
-      <h2>Labs · Experience</h2>
-      <p>Hardware assimilation spike — packs change the frame</p>
-      <span class="tag">LABS · LAYER A</span>
     </button>
     <button type="button" class="tile" onclick="openMod('connection')">
       <h2>Connection bus</h2>
-      <p>Grok status / pending / ack folder</p>
+      <p>Grok status / pending / ack</p>
       <span class="tag">GROK · BUS</span>
     </button>
   </div>
-  <p class="foot">Install Library + Assimilate APKs for on-device modules. Missing apps open install notes.</p>
+  <p class="foot">Console = Cubit games only. Labs = experiments. Assimilate = phone.</p>
   <div id="log"></div>
   <script>
     function log(m){ document.getElementById('log').textContent += m + '\n'; }
     function openMod(id){
-      try {
-        if (window.CubitOS && window.CubitOS.openModule) { window.CubitOS.openModule(id); return; }
-      } catch(e) {}
-      log('Open ' + id + ' (APK bridge)');
+      try { if (window.CubitOS && window.CubitOS.openModule) { window.CubitOS.openModule(id); return; } } catch(e) {}
+      if (id === 'play') location.href = 'play/index.html';
+      else if (id === 'labs') location.href = 'labs/experience.html';
+      else log('Open ' + id);
     }
   </script>
 </body>

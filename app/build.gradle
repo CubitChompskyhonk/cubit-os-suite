@@ -1,0 +1,15 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'inc.cubitsystems.os'
+    compileSdk 34
+    defaultConfig {
+        applicationId "inc.cubitsystems.os"
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName "1.0.0"
+    }
+    buildTypes { release { minifyEnabled false }; debug { versionNameSuffix "-debug" } }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}
+dependencies { implementation 'androidx.appcompat:appcompat:1.6.1' }

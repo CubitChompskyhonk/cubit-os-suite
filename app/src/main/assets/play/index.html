@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Cubit Play</title>
+  <style>
+    :root { --bg:#0b0e14; --card:#121826; --line:#2a3142; --text:#e8ecf4; --mute:#8b93a7; --ok:#3dd68c; --accent:#5b8cff; --gold:#c9a227; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, sans-serif; background: var(--bg); color: var(--text);
+      min-height: 100dvh; padding: 18px 14px 32px;
+      image-rendering: pixelated;
+    }
+    body.crt::after {
+      content: ""; pointer-events: none; position: fixed; inset: 0; z-index: 50;
+      background: repeating-linear-gradient(to bottom, rgba(0,0,0,0.07) 0, rgba(0,0,0,0.07) 1px, transparent 2px, transparent 3px);
+    }
+    .brand { color: var(--gold); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.14em; }
+    h1 { font-size: 1.5rem; margin: 6px 0 4px; letter-spacing: 0.02em; }
+    .sub { color: var(--mute); font-size: 0.8rem; margin-bottom: 14px; line-height: 1.4; }
+    .screen {
+      max-width: 480px; margin: 0 auto 14px; border: 3px solid #1a2030; border-radius: 12px;
+      background: #000; aspect-ratio: 4/3; overflow: hidden; position: relative;
+      box-shadow: 0 0 0 1px #3a4558, 0 12px 40px rgba(0,0,0,0.5);
+    }
+    .screen iframe { width: 100%; height: 100%; border: 0; }
+    .screen .hint {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      color: var(--mute); font-size: 0.85rem; text-align: center; padding: 20px; background: #05070c;
+    }
+    .row { display: flex; gap: 8px; max-width: 480px; margin: 0 auto 10px; flex-wrap: wrap; }
+    button {
+      flex: 1; min-width: 120px; padding: 12px; border-radius: 10px; border: 1px solid var(--line);
+      background: var(--card); color: var(--text); font-weight: 700; font-size: 0.85rem;
+    }
+    button.primary { border-color: var(--gold); background: #1a1810; color: #f0e6c8; }
+    button.ghost { font-weight: 600; font-size: 0.8rem; }
+    .catalog { max-width: 480px; margin: 12px auto; }
+    .game {
+      background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px;
+    }
+    .game h2 { font-size: 1rem; }
+    .game p { color: var(--mute); font-size: 0.78rem; margin: 4px 0 8px; }
+    .tag { font-size: 0.65rem; color: var(--ok); letter-spacing: 0.06em; }
+    .note { max-width: 480px; margin: 12px auto; font-size: 0.72rem; color: var(--mute); line-height: 1.4; }
+  </style>
+</head>
+<body class="crt">
+  <div class="brand">CUBIT PLAY · VIRTUAL CONSOLE</div>
+  <h1>Console menu</h1>
+  <p class="sub">First-party games · N64-class profile · not a commercial ROM deck. Labs stays experimental.</p>
+
+  <div class="screen" id="screen">
+    <div class="hint" id="hint">Select a Cubit game to start<br/>Internal present · era-inspired</div>
+    <iframe id="frame" hidden title="game"></iframe>
+  </div>
+
+  <div class="row">
+    <button type="button" class="primary" onclick="launch('under-the-glow')">Play Under the Glow</button>
+    <button type="button" class="ghost" onclick="toggleCRT()">CRT profile</button>
+    <button type="button" class="ghost" onclick="goHome()">OS Home</button>
+  </div>
+
+  <div class="catalog" id="catalog"></div>
+  <p class="note">Profile <strong>n64-class</strong>: limited presentation, scanline option, first-party catalog only. Chip-8 / generic ROM tools live under <strong>Labs</strong>, not here.</p>
+
+  <script>
+    async function loadCatalog() {
+      try {
+        const r = await fetch('catalog.json');
+        const cat = await r.json();
+        const el = document.getElementById('catalog');
+        el.innerHTML = (cat.games || []).map(g => `
+          <div class="game">
+            <div class="tag">${(g.profile || '').toUpperCase()} · ${g.publisher || 'CUBIT'}</div>
+            <h2>${g.title}</h2>
+            <p>${g.description || ''}</p>
+            <button type="button" class="primary" onclick="launch('${g.id}')">Start</button>
+          </div>`).join('');
+      } catch (e) {
+        document.getElementById('catalog').textContent = 'Catalog load failed';
+      }
+    }
+    function launch(id) {
+      const paths = { 'under-the-glow': 'games/under-the-glow/index.html' };
+      const path = paths[id];
+      if (!path) return;
+      const hint = document.getElementById('hint');
+      const frame = document.getElementById('frame');
+      hint.hidden = true;
+      frame.hidden = false;
+      frame.src = path;
+      try {
+        localStorage.setItem('cubit_play_session', JSON.stringify({
+          schema: 1, console: 'Cubit Play', game: id, profile: 'n64-class', ts: Date.now()
+        }));
+      } catch (e) {}
+    }
+    function toggleCRT() { document.body.classList.toggle('crt'); }
+    function goHome() { location.href = '../index.html'; }
+    loadCatalog();
+  </script>
+</body>
+</html>

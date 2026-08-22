@@ -5,76 +5,243 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Cubit Experience Layer</title>
   <style>
-    :root { --bg:#0a0c10; --card:#141a24; --line:#2a3142; --text:#eef1f6; --mute:#8b93a7; --ok:#3dd68c; --accent:#5b8cff; }
+    :root { --bg:#0a0c10; --card:#141a24; --line:#2a3142; --text:#eef1f6; --mute:#8b93a7; --ok:#3dd68c; --accent:#5b8cff; --warn:#e8b44c; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100dvh; padding: 12px; }
-    .brand { color: var(--ok); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; }
-    h1 { font-size: 1.15rem; margin: 4px 0; }
-    .sub { color: var(--mute); font-size: 0.78rem; margin-bottom: 10px; line-height: 1.35; }
-    .stage {
-      position: relative; width: 100%; max-width: 480px; margin: 0 auto 12px;
-      aspect-ratio: 4/3; background: #000; border-radius: 8px; overflow: hidden;
-      border: 1px solid var(--line);
-    }
+    .brand { color: var(--ok); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; }
+    h1 { font-size: 1.1rem; margin: 4px 0; }
+    .sub { color: var(--mute); font-size: 0.75rem; margin-bottom: 10px; line-height: 1.35; }
+    .stage { position: relative; width: 100%; max-width: 480px; margin: 0 auto 10px; aspect-ratio: 4/3; background: #000; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); }
     canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
     .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; max-width: 480px; margin: 0 auto 10px; }
-    .card h2 { font-size: 0.7rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
-    .row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #1e2533; }
+    .card h2 { font-size: 0.68rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+    .row { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #1e2533; gap: 8px; }
     .row:last-child { border-bottom: none; }
-    .title { font-size: 0.88rem; font-weight: 600; }
-    .desc { font-size: 0.7rem; color: var(--mute); }
-    .sw { position: relative; width: 46px; height: 26px; }
+    .title { font-size: 0.85rem; font-weight: 600; }
+    .desc { font-size: 0.68rem; color: var(--mute); }
+    .sw { position: relative; width: 44px; height: 26px; flex-shrink: 0; }
     .sw input { opacity: 0; width: 0; height: 0; }
     .sw span { position: absolute; inset: 0; background: #2a3142; border-radius: 999px; cursor: pointer; }
     .sw span:before { content: ""; position: absolute; width: 20px; height: 20px; left: 3px; top: 3px; background: #cfd6e6; border-radius: 50%; transition: 0.15s; }
     .sw input:checked + span { background: #2a5080; }
-    .sw input:checked + span:before { transform: translateX(20px); background: #9ec0ff; }
-    button {
-      width: 100%; max-width: 480px; margin: 8px auto; display: block; padding: 12px;
-      border-radius: 11px; border: 1px solid var(--accent); background: #1a3050; color: #cfe0ff; font-weight: 700;
+    .sw input:checked + span:before { transform: translateX(18px); background: #9ec0ff; }
+    button, label.filebtn {
+      width: 100%; max-width: 480px; margin: 6px auto; display: block; padding: 11px;
+      border-radius: 11px; border: 1px solid var(--line); background: #1a2435; color: var(--text);
+      font-weight: 700; font-size: 0.88rem; text-align: center; cursor: pointer;
     }
-    .note { max-width: 480px; margin: 8px auto; font-size: 0.72rem; color: var(--mute); line-height: 1.4; }
+    button.primary { border-color: var(--accent); background: #1a3050; color: #cfe0ff; }
+    .note { max-width: 480px; margin: 6px auto; font-size: 0.7rem; color: var(--mute); line-height: 1.35; }
+    #legal {
+      position: fixed; inset: 0; background: rgba(5,8,12,0.92); z-index: 20;
+      display: flex; align-items: center; justify-content: center; padding: 16px;
+    }
+    #legal .box { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; max-width: 420px; }
+    #legal h2 { color: var(--warn); font-size: 1rem; margin-bottom: 8px; }
+    #legal p { font-size: 0.82rem; color: var(--mute); line-height: 1.45; margin-bottom: 8px; }
+    #log { max-width: 480px; margin: 8px auto; font-family: monospace; font-size: 0.68rem; color: var(--mute); white-space: pre-wrap; }
+    .packbtns { display: flex; gap: 6px; flex-wrap: wrap; max-width: 480px; margin: 0 auto 8px; }
+    .packbtns button { width: auto; margin: 0; padding: 8px 10px; font-size: 0.75rem; }
   </style>
 </head>
 <body>
-  <div class="brand">CUBIT LABS · EXPERIENCE LAYER v0.1</div>
-  <h1>Hardware assimilation spike</h1>
-  <p class="sub">Emulator-path demo: toggle packs change what appears on screen. Placeholder scene only — no commercial ROMs.</p>
-
-  <div class="stage"><canvas id="c" width="320" height="240"></canvas></div>
-
-  <div class="card">
-    <h2>Experience packs</h2>
-    <div class="row">
-      <div><div class="title">CRT / scanlines</div><div class="desc">Tube look on the frame</div></div>
-      <label class="sw"><input type="checkbox" id="crt" checked /><span></span></label>
-    </div>
-    <div class="row">
-      <div><div class="title">Color grade</div><div class="desc">Cold blue night shift</div></div>
-      <label class="sw"><input type="checkbox" id="grade" checked /><span></span></label>
-    </div>
-    <div class="row">
-      <div><div class="title">HUD overlay</div><div class="desc">Cubit session chrome</div></div>
-      <label class="sw"><input type="checkbox" id="hud" checked /><span></span></label>
-    </div>
-    <div class="row">
-      <div><div class="title">Guide layer</div><div class="desc">Soft path hint</div></div>
-      <label class="sw"><input type="checkbox" id="guide" /><span></span></label>
-    </div>
-    <div class="row">
-      <div><div class="title">Vignette</div><div class="desc">Edge falloff</div></div>
-      <label class="sw"><input type="checkbox" id="vig" checked /><span></span></label>
+  <div id="legal">
+    <div class="box">
+      <h2>User-supplied software only</h2>
+      <p>Cubit Experience Layer does <strong>not</strong> provide commercial game files. You may only load software you have the right to use.</p>
+      <p>No piracy assist. Packs change how the <em>frame looks</em> — they are not game ROMs.</p>
+      <p>Core host demo uses <strong>Chip-8</strong> (architecture proof). N64-class cores are adapters on the same pack pipeline.</p>
+      <button type="button" class="primary" onclick="acceptLegal()">I understand — continue</button>
     </div>
   </div>
 
-  <button type="button" onclick="runExperience()">Run experience</button>
-  <p class="note">Doctrine: Layer A (software host). User would supply their own game image in a full build. This spike proves toggles alter the visible frame.</p>
+  <div class="brand">CUBIT LABS · EXPERIENCE LAYER v0.2</div>
+  <h1>Core host + packs</h1>
+  <p class="sub">Load your Chip-8 program · apply experience packs · Run. Media stays on device.</p>
+
+  <div class="stage"><canvas id="c" width="320" height="240"></canvas></div>
+
+  <div class="packbtns">
+    <button type="button" onclick="applyPack('crt-cold')">CRT Cold</button>
+    <button type="button" onclick="applyPack('clean')">Clean</button>
+    <button type="button" onclick="applyPack('glow')">Glow</button>
+  </div>
+
+  <div class="card">
+    <h2>Experience packs</h2>
+    <div class="row"><div><div class="title">CRT</div></div><label class="sw"><input type="checkbox" id="crt" checked /><span></span></label></div>
+    <div class="row"><div><div class="title">Color grade</div></div><label class="sw"><input type="checkbox" id="grade" checked /><span></span></label></div>
+    <div class="row"><div><div class="title">HUD</div></div><label class="sw"><input type="checkbox" id="hud" checked /><span></span></label></div>
+    <div class="row"><div><div class="title">Guide</div></div><label class="sw"><input type="checkbox" id="guide" /><span></span></label></div>
+    <div class="row"><div><div class="title">Vignette</div></div><label class="sw"><input type="checkbox" id="vig" checked /><span></span></label></div>
+  </div>
+
+  <label class="filebtn">Pick user program (.ch8 / .rom)
+    <input type="file" id="rom" accept=".ch8,.c8,.rom,application/octet-stream" hidden />
+  </label>
+  <button type="button" class="primary" onclick="runExperience()">Run experience</button>
+  <button type="button" onclick="exportPack()">Export pack JSON</button>
+  <p class="note" id="mediaLine">media: none · core: chip8-demo</p>
+  <div id="log"></div>
 
   <script>
     const canvas = document.getElementById('c');
     const ctx = canvas.getContext('2d');
-    let t = 0;
+    const off = document.createElement('canvas');
+    off.width = 64; off.height = 32;
+    const octx = off.getContext('2d');
     let packs = { crt: true, grade: true, hud: true, guide: false, vig: true };
+    let mediaMeta = { name: null, size: 0, sha: null };
+    let running = false;
+
+    // --- Chip-8 core (minimal) ---
+    const C8 = {
+      mem: new Uint8Array(4096),
+      V: new Uint8Array(16),
+      stack: new Uint16Array(16),
+      sp: 0, I: 0, pc: 0x200,
+      delay: 0, sound: 0,
+      key: new Uint8Array(16),
+      gfx: new Uint8Array(64 * 32),
+      draw: false,
+      reset() {
+        this.mem.fill(0); this.V.fill(0); this.stack.fill(0);
+        this.sp = 0; this.I = 0; this.pc = 0x200; this.delay = 0; this.sound = 0;
+        this.gfx.fill(0); this.draw = true;
+        const font = [
+          0xF0,0x90,0x90,0x90,0xF0, 0x20,0x60,0x20,0x20,0x70,
+          0xF0,0x10,0xF0,0x80,0xF0, 0xF0,0x10,0xF0,0x10,0xF0,
+          0x90,0x90,0xF0,0x10,0x10, 0xF0,0x80,0xF0,0x10,0xF0,
+          0xF0,0x80,0xF0,0x90,0xF0, 0xF0,0x10,0x20,0x40,0x40,
+          0xF0,0x90,0xF0,0x90,0xF0, 0xF0,0x90,0xF0,0x10,0xF0,
+          0xF0,0x90,0xF0,0x90,0x90, 0xE0,0x90,0xE0,0x90,0xE0,
+          0xF0,0x80,0x80,0x80,0xF0, 0xE0,0x90,0x90,0x90,0xE0,
+          0xF0,0x80,0xF0,0x80,0xF0, 0xF0,0x80,0xF0,0x80,0x80
+        ];
+        this.mem.set(font, 0);
+      },
+      load(bytes) {
+        this.reset();
+        this.mem.set(bytes.slice(0, 0x1000 - 0x200), 0x200);
+      },
+      step() {
+        const op = (this.mem[this.pc] << 8) | this.mem[this.pc + 1];
+        this.pc = (this.pc + 2) & 0xfff;
+        const x = (op & 0x0f00) >> 8, y = (op & 0x00f0) >> 4, n = op & 0x000f;
+        const nn = op & 0x00ff, nnn = op & 0x0fff;
+        switch (op & 0xf000) {
+          case 0x0000:
+            if (nn === 0xe0) { this.gfx.fill(0); this.draw = true; }
+            else if (nn === 0xee) { this.sp = (this.sp - 1) & 0xf; this.pc = this.stack[this.sp]; }
+            break;
+          case 0x1000: this.pc = nnn; break;
+          case 0x2000: this.stack[this.sp] = this.pc; this.sp = (this.sp + 1) & 0xf; this.pc = nnn; break;
+          case 0x3000: if (this.V[x] === nn) this.pc = (this.pc + 2) & 0xfff; break;
+          case 0x4000: if (this.V[x] !== nn) this.pc = (this.pc + 2) & 0xfff; break;
+          case 0x5000: if (this.V[x] === this.V[y]) this.pc = (this.pc + 2) & 0xfff; break;
+          case 0x6000: this.V[x] = nn; break;
+          case 0x7000: this.V[x] = (this.V[x] + nn) & 0xff; break;
+          case 0x8000:
+            switch (n) {
+              case 0: this.V[x] = this.V[y]; break;
+              case 1: this.V[x] |= this.V[y]; break;
+              case 2: this.V[x] &= this.V[y]; break;
+              case 3: this.V[x] ^= this.V[y]; break;
+              case 4: { const s = this.V[x] + this.V[y]; this.V[0xf] = s > 255 ? 1 : 0; this.V[x] = s & 0xff; break; }
+              case 5: this.V[0xf] = this.V[x] >= this.V[y] ? 1 : 0; this.V[x] = (this.V[x] - this.V[y]) & 0xff; break;
+              case 6: this.V[0xf] = this.V[x] & 1; this.V[x] >>= 1; break;
+              case 7: this.V[0xf] = this.V[y] >= this.V[x] ? 1 : 0; this.V[x] = (this.V[y] - this.V[x]) & 0xff; break;
+              case 0xe: this.V[0xf] = (this.V[x] & 0x80) ? 1 : 0; this.V[x] = (this.V[x] << 1) & 0xff; break;
+            }
+            break;
+          case 0x9000: if (this.V[x] !== this.V[y]) this.pc = (this.pc + 2) & 0xfff; break;
+          case 0xa000: this.I = nnn; break;
+          case 0xb000: this.pc = (nnn + this.V[0]) & 0xfff; break;
+          case 0xc000: this.V[x] = (Math.random() * 256) & nn; break;
+          case 0xd000: {
+            this.V[0xf] = 0;
+            for (let row = 0; row < n; row++) {
+              const sprite = this.mem[(this.I + row) & 0xfff];
+              for (let col = 0; col < 8; col++) {
+                if (!(sprite & (0x80 >> col))) continue;
+                const px = (this.V[x] + col) % 64;
+                const py = (this.V[y] + row) % 32;
+                const i = py * 64 + px;
+                if (this.gfx[i]) this.V[0xf] = 1;
+                this.gfx[i] ^= 1;
+              }
+            }
+            this.draw = true;
+            break;
+          }
+          case 0xe000:
+            if (nn === 0x9e) { if (this.key[this.V[x]]) this.pc = (this.pc + 2) & 0xfff; }
+            else if (nn === 0xa1) { if (!this.key[this.V[x]]) this.pc = (this.pc + 2) & 0xfff; }
+            break;
+          case 0xf000:
+            switch (nn) {
+              case 0x07: this.V[x] = this.delay; break;
+              case 0x0a: this.pc = (this.pc - 2) & 0xfff; break;
+              case 0x15: this.delay = this.V[x]; break;
+              case 0x18: this.sound = this.V[x]; break;
+              case 0x1e: this.I = (this.I + this.V[x]) & 0xfff; break;
+              case 0x29: this.I = (this.V[x] & 0xf) * 5; break;
+              case 0x33:
+                this.mem[this.I] = (this.V[x] / 100) | 0;
+                this.mem[this.I + 1] = ((this.V[x] / 10) | 0) % 10;
+                this.mem[this.I + 2] = this.V[x] % 10;
+                break;
+              case 0x55: for (let i = 0; i <= x; i++) this.mem[this.I + i] = this.V[i]; break;
+              case 0x65: for (let i = 0; i <= x; i++) this.V[i] = this.mem[this.I + i]; break;
+            }
+            break;
+        }
+      }
+    };
+
+    // Built-in tiny demo program (draws a bouncing pattern) — not a commercial ROM
+    function loadDemoProgram() {
+      // Simple program: clear, draw font digits in a loop-ish pattern
+      const prog = [
+        0x00, 0xE0, // CLS
+        0x60, 0x0A, // V0 = 10
+        0x61, 0x05, // V1 = 5
+        0x62, 0x00, // V2 = 0
+        0xF2, 0x29, // I = sprite V2
+        0xD0, 0x15, // draw
+        0x70, 0x05, // V0 += 5
+        0x72, 0x01, // V2 += 1
+        0x32, 0x0A, // skip if V2 == 10
+        0x12, 0x08, // jump back
+        0x12, 0x00  // jump start
+      ];
+      C8.load(new Uint8Array(prog));
+      mediaMeta = { name: 'demo-builtin.ch8', size: prog.length, sha: 'builtin' };
+      document.getElementById('mediaLine').textContent =
+        'media: ' + mediaMeta.name + ' · ' + mediaMeta.size + 'b · core: chip8';
+      log('Loaded built-in demo program');
+    }
+
+    async function hashBuf(buf) {
+      try {
+        const dig = await crypto.subtle.digest('SHA-256', buf);
+        return [...new Uint8Array(dig)].map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
+      } catch (e) { return 'local'; }
+    }
+
+    document.getElementById('rom').addEventListener('change', async (e) => {
+      const f = e.target.files && e.target.files[0];
+      if (!f) return;
+      const buf = await f.arrayBuffer();
+      const bytes = new Uint8Array(buf);
+      C8.load(bytes);
+      const sha = await hashBuf(buf);
+      mediaMeta = { name: f.name, size: f.size, sha };
+      document.getElementById('mediaLine').textContent =
+        'media: ' + f.name + ' · ' + f.size + 'b · sha:' + sha + ' · core: chip8';
+      log('User media loaded (local only): ' + f.name);
+      running = true;
+    });
 
     function readToggles() {
       packs.crt = document.getElementById('crt').checked;
@@ -84,57 +251,93 @@
       packs.vig = document.getElementById('vig').checked;
     }
 
-    function runExperience() {
-      readToggles();
+    function applyPack(id) {
+      const map = {
+        'crt-cold': { crt: true, grade: true, hud: true, guide: false, vig: true },
+        'clean': { crt: false, grade: false, hud: false, guide: false, vig: false },
+        'glow': { crt: true, grade: true, hud: true, guide: true, vig: true }
+      };
+      const p = map[id];
+      if (!p) return;
+      packs = { ...p };
+      Object.keys(p).forEach(k => { const el = document.getElementById(k); if (el) el.checked = p[k]; });
+      log('Pack applied: ' + id);
     }
 
-    document.querySelectorAll('.sw input').forEach(el => el.addEventListener('change', runExperience));
+    function runExperience() {
+      readToggles();
+      running = true;
+      log('Run experience · packs=' + JSON.stringify(packs));
+      try {
+        const session = {
+          schema: 1,
+          type: 'experience_session',
+          core: 'chip8',
+          media: mediaMeta,
+          packs,
+          ts: Date.now()
+        };
+        localStorage.setItem('cubit_experience_session', JSON.stringify(session));
+      } catch (e) {}
+    }
 
-    function drawBase() {
-      // faux “low-poly room” game frame
-      const g = ctx.createLinearGradient(0, 0, 0, 240);
-      g.addColorStop(0, '#1a2840');
-      g.addColorStop(1, '#0c1018');
-      ctx.fillStyle = g;
+    function exportPack() {
+      readToggles();
+      const doc = {
+        schema: 1,
+        id: 'user-pack-' + Date.now(),
+        name: 'User pack',
+        author: 'local',
+        license: 'user',
+        packs: { ...packs }
+      };
+      const blob = new Blob([JSON.stringify(doc, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = doc.id + '.json';
+      a.click();
+      log('Exported pack JSON');
+    }
+
+    function acceptLegal() {
+      localStorage.setItem('cubit_exp_legal', '1');
+      document.getElementById('legal').style.display = 'none';
+      loadDemoProgram();
+      running = true;
+    }
+    if (localStorage.getItem('cubit_exp_legal') === '1') {
+      document.getElementById('legal').style.display = 'none';
+      loadDemoProgram();
+      running = true;
+    }
+
+    function log(m) {
+      const el = document.getElementById('log');
+      el.textContent += m + '\n';
+    }
+
+    function drawCore() {
+      // scale 64x32 chip8 to offscreen then to main
+      const img = octx.createImageData(64, 32);
+      for (let i = 0; i < 64 * 32; i++) {
+        const on = C8.gfx[i] ? 255 : 0;
+        img.data[i * 4] = on;
+        img.data[i * 4 + 1] = on;
+        img.data[i * 4 + 2] = on;
+        img.data[i * 4 + 3] = 255;
+      }
+      octx.putImageData(img, 0, 0);
+      ctx.fillStyle = '#000';
       ctx.fillRect(0, 0, 320, 240);
-
-      // floor
-      ctx.fillStyle = '#2a3548';
-      ctx.beginPath();
-      ctx.moveTo(0, 180); ctx.lineTo(160, 120); ctx.lineTo(320, 180); ctx.lineTo(320, 240); ctx.lineTo(0, 240);
-      ctx.fill();
-
-      // spinning “crystal” stand-in for game content
-      const cx = 160 + Math.sin(t * 0.03) * 8;
-      const cy = 110 + Math.cos(t * 0.02) * 4;
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(t * 0.02);
-      ctx.fillStyle = '#6ec8ff';
-      ctx.beginPath();
-      ctx.moveTo(0, -28); ctx.lineTo(22, 0); ctx.lineTo(0, 28); ctx.lineTo(-22, 0);
-      ctx.closePath();
-      ctx.fill();
-      ctx.fillStyle = '#b8ecff';
-      ctx.beginPath();
-      ctx.moveTo(0, -28); ctx.lineTo(10, -6); ctx.lineTo(0, 0); ctx.lineTo(-10, -6);
-      ctx.fill();
-      ctx.restore();
-
-      // faux N64-ish caption
-      ctx.fillStyle = 'rgba(0,0,0,0.35)';
-      ctx.fillRect(8, 200, 140, 28);
-      ctx.fillStyle = '#cde';
-      ctx.font = '10px monospace';
-      ctx.fillText('SESSION DEMO · NO ROM', 14, 218);
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(off, 0, 0, 320, 240);
     }
 
     function applyGrade() {
       if (!packs.grade) return;
-      ctx.fillStyle = 'rgba(40, 80, 140, 0.18)';
+      ctx.fillStyle = 'rgba(40, 80, 140, 0.2)';
       ctx.fillRect(0, 0, 320, 240);
     }
-
     function applyVignette() {
       if (!packs.vig) return;
       const vg = ctx.createRadialGradient(160, 120, 40, 160, 120, 180);
@@ -143,45 +346,35 @@
       ctx.fillStyle = vg;
       ctx.fillRect(0, 0, 320, 240);
     }
-
     function applyCRT() {
       if (!packs.crt) return;
       for (let y = 0; y < 240; y += 2) {
-        ctx.fillStyle = 'rgba(0,0,0,0.15)';
+        ctx.fillStyle = 'rgba(0,0,0,0.18)';
         ctx.fillRect(0, y, 320, 1);
       }
-      ctx.strokeStyle = 'rgba(120,180,255,0.08)';
-      ctx.strokeRect(1, 1, 318, 238);
     }
-
     function applyHUD() {
       if (!packs.hud) return;
-      ctx.fillStyle = 'rgba(10, 20, 35, 0.75)';
-      ctx.fillRect(0, 0, 320, 18);
+      ctx.fillStyle = 'rgba(10, 20, 35, 0.8)';
+      ctx.fillRect(0, 0, 320, 16);
       ctx.fillStyle = '#3dd68c';
       ctx.font = '9px monospace';
-      ctx.fillText('CUBIT EXPERIENCE · LAYER A', 6, 12);
-      ctx.fillStyle = '#8b93a7';
-      ctx.fillText('install local · user media only', 180, 12);
+      ctx.fillText('CUBIT EXP · CHIP8 · ' + (mediaMeta.name || 'none'), 6, 11);
     }
-
     function applyGuide() {
       if (!packs.guide) return;
-      ctx.strokeStyle = 'rgba(91, 140, 255, 0.5)';
-      ctx.setLineDash([4, 4]);
-      ctx.beginPath();
-      ctx.moveTo(40, 200);
-      ctx.quadraticCurveTo(120, 150, 160, 110);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle = 'rgba(91, 140, 255, 0.8)';
-      ctx.font = '9px monospace';
-      ctx.fillText('GUIDE', 42, 196);
+      ctx.strokeStyle = 'rgba(91,140,255,0.45)';
+      ctx.strokeRect(20, 20, 280, 200);
     }
 
-    function frame() {
-      t++;
-      drawBase();
+    let acc = 0;
+    function frame(ts) {
+      if (running) {
+        for (let i = 0; i < 8; i++) C8.step();
+        if (C8.delay > 0) C8.delay--;
+      }
+      readToggles();
+      drawCore();
       applyGrade();
       applyGuide();
       applyVignette();
@@ -189,8 +382,17 @@
       applyHUD();
       requestAnimationFrame(frame);
     }
-    runExperience();
-    frame();
+    requestAnimationFrame(frame);
+
+    // simple keys 1-4,q-r for chip8
+    window.addEventListener('keydown', e => {
+      const map = { '1':0x1,'2':0x2,'3':0x3,'4':0xc,q:0x4,w:0x5,e:0x6,r:0xd,a:0x7,s:0x8,d:0x9,f:0xe,z:0xa,x:0x0,c:0xb,v:0xf };
+      if (map[e.key] !== undefined) C8.key[map[e.key]] = 1;
+    });
+    window.addEventListener('keyup', e => {
+      const map = { '1':0x1,'2':0x2,'3':0x3,'4':0xc,q:0x4,w:0x5,e:0x6,r:0xd,a:0x7,s:0x8,d:0x9,f:0xe,z:0xa,x:0x0,c:0xb,v:0xf };
+      if (map[e.key] !== undefined) C8.key[map[e.key]] = 0;
+    });
   </script>
 </body>
 </html>

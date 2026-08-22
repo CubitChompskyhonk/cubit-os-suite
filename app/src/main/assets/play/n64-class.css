@@ -1,0 +1,23 @@
+/* Cubit Play — N64-class presentation profile */
+html, body {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+body {
+  filter: contrast(1.05) saturate(0.92);
+}
+/* Optional CRT overlay host when parent adds class */
+body.cubit-n64::after {
+  content: "";
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.03) 0px,
+    rgba(0,0,0,0.03) 1px,
+    transparent 2px,
+    transparent 3px
+  );
+  z-index: 9999;
+}

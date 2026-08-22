@@ -26,7 +26,7 @@
   </style>
 </head>
 <body>
-  <div class="brand">CUBIT SUITE · OS v1.3.1</div>
+  <div class="brand">CUBIT SUITE · OS v1.4.0</div>
   <h1>Head Offices</h1>
   <p class="sub">Suite home. <strong>Cubit Play</strong> is the virtual console for first-party games.</p>
   <div class="grid">
@@ -66,10 +66,16 @@
   <script>
     function log(m){ document.getElementById('log').textContent += m + '\n'; }
     function openMod(id){
-      try { if (window.CubitOS && window.CubitOS.openModule) { window.CubitOS.openModule(id); return; } } catch(e) {}
+      try {
+        if (window.CubitOS && window.CubitOS.openModule) {
+          window.CubitOS.openModule(id);
+          return;
+        }
+      } catch (e) { log('bridge ' + e); }
+      // Web fallback
       if (id === 'play') location.href = 'play/index.html';
       else if (id === 'labs') location.href = 'labs/experience.html';
-      else log('Open ' + id);
+      else log('Open ' + id + ' (install APK for modules)');
     }
   </script>
 </body>

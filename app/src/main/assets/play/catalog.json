@@ -4,9 +4,18 @@
   "profile": "n64-class",
   "games": [
     {
+      "id": "prism",
+      "title": "Project Prism",
+      "version": "0.1.0-phase-a",
+      "path": "games/prism/index.html",
+      "profile": "n64-class",
+      "publisher": "Cubit Eng + Games",
+      "description": "Engine showcase — greybox arena, flock, particles, FPS bench"
+    },
+    {
       "id": "under-the-glow",
       "title": "Under the Glow",
-      "version": "0.14+",
+      "version": "0.16",
       "path": "games/under-the-glow/index.html",
       "profile": "n64-class",
       "publisher": "Cubit Games",

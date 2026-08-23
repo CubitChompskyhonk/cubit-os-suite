@@ -161,6 +161,13 @@
     loadTex('floor_dirt'), loadTex('floor_gravel')
   ]).then(function () { texReady = true; });
 
+  
+  var mobSprites = {};
+  ['enemy','mob_beasts','mob_smallbeasts','mob_undead','mob_werebeasts','mob_cosmic_horror_dude'].forEach(function(n){
+    var i = new Image(); i.src = 'assets/' + n + '.png'; mobSprites[n] = i;
+  });
+  var typeSprite = { grunt:'enemy', sniper:'mob_cosmic_horror_dude', spray:'mob_smallbeasts', tank:'mob_werebeasts' };
+
   var player = { x: 4.5, z: 6.5, yaw: 0, hp: 100, maxHp: 100, cooldown: 0, radius: 0.28 };
   var enemies = [], shots = [];
   var score = 0, wave = 1, playing = false, gameOver = false;
@@ -444,8 +451,15 @@
     sprites.forEach(function (o) {
       var p = o.p;
       if (o.kind === 'en') {
-        g.fillStyle = o.en.def.color;
-        g.fillRect(p.x - p.h * 0.25, p.y - p.h * 0.5, p.h * 0.5, p.h);
+        var img = mobSprites[typeSprite[o.en.type] || 'enemy'];
+        if (img && img.complete && img.naturalWidth) {
+          var aspect = img.naturalWidth / img.naturalHeight;
+          var hh = p.h; var ww = hh * aspect;
+          g.drawImage(img, p.x - ww/2, p.y - hh * 0.85, ww, hh);
+        } else {
+          g.fillStyle = o.en.def.color;
+          g.fillRect(p.x - p.h * 0.25, p.y - p.h * 0.5, p.h * 0.5, p.h);
+        }
       } else {
         g.fillStyle = o.s.from === 'player' ? '#9ec0ff' : (o.s.damage >= 18 ? '#ff7040' : '#ff90c0');
         g.beginPath();

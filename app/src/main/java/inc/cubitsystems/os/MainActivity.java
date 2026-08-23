@@ -23,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String ASSET_HOME = "file:///android_asset/index.html";
     private static final String ASSET_PLAY = "file:///android_asset/play/index.html";
+    private static final String ASSET_TANK = "file:///android_asset/play/games/tank-wars/index.html";
     private static final String ASSET_GLOW3D = "file:///android_asset/play/games/glow3d/index.html";
     private static final String ASSET_MAZE = "file:///android_asset/play/games/maze/index.html";
     private static final String ASSET_PRISM = "file:///android_asset/play/games/prism/index.html";
@@ -111,7 +112,9 @@ public class MainActivity extends AppCompatActivity {
         public void openGame(String id) {
             if (id == null) return;
             runOnUiThread(() -> {
-                if ("glow3d".equals(id)) {
+                if ("tank-wars".equals(id)) {
+                    webView.loadUrl(ASSET_TANK);
+                } else if ("glow3d".equals(id)) {
                     webView.loadUrl(ASSET_GLOW3D);
                 } else if ("maze".equals(id)) {
                     webView.loadUrl(ASSET_MAZE);

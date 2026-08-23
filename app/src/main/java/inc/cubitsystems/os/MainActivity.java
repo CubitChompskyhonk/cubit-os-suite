@@ -22,6 +22,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String URL_CONNECTION = "https://drive.google.com/drive/folders/1zPE1YjRzPJBKxr9bmUm1jD3g5idjVMIW";
     private static final String ASSET_HOME = "file:///android_asset/index.html";
     private static final String ASSET_PLAY = "file:///android_asset/play/index.html";
+    private static final String ASSET_PRISM = "file:///android_asset/play/games/prism/index.html";
     private static final String ASSET_GLOW =
             "file:///android_asset/play/games/under-the-glow/index.html?access=founder&play=1&console=cubit";
     private static final String ASSET_LABS = "file:///android_asset/labs/experience.html";
@@ -110,6 +111,8 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(() -> {
                 if ("under-the-glow".equals(id)) {
                     webView.loadUrl(ASSET_GLOW);
+                } else if ("prism".equals(id)) {
+                    webView.loadUrl(ASSET_PRISM);
                 } else {
                     Toast.makeText(MainActivity.this, "Unknown game", Toast.LENGTH_SHORT).show();
                 }

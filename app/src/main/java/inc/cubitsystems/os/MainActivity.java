@@ -20,6 +20,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String PKG_ASSIMILATE = "inc.cubitsystems.assimilate";
     private static final String URL_HQ = "https://drive.google.com/drive/folders/1P-bh17Tn0NrmVDwDpKZEQ9Jf5ES0mBsf";
     private static final String URL_CONNECTION = "https://drive.google.com/drive/folders/1zPE1YjRzPJBKxr9bmUm1jD3g5idjVMIW";
+
     private static final String ASSET_HOME = "file:///android_asset/index.html";
     private static final String ASSET_PLAY = "file:///android_asset/play/index.html";
     private static final String ASSET_PRISM = "file:///android_asset/play/games/prism/index.html";
@@ -35,22 +36,24 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         webView = findViewById(R.id.webview);
+
         WebSettings s = webView.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
+        s.setDatabaseEnabled(true);
         s.setMediaPlaybackRequiresUserGesture(false);
         s.setAllowFileAccess(true);
         s.setAllowContentAccess(true);
-        // Required for file:/// pages to load relative file assets on many WebViews
         try {
             s.setAllowFileAccessFromFileURLs(true);
             s.setAllowUniversalAccessFromFileURLs(true);
         } catch (Throwable ignored) {}
+
         webView.setWebChromeClient(new WebChromeClient());
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                return false; // always load in-place
+                return false;
             }
         });
         webView.addJavascriptInterface(new Bridge(), "CubitOS");
@@ -67,20 +70,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void launchPackage(String pkg, String label) {
-        PackageManager pm = getPackageManager();
-        Intent launch = pm.getLaunchIntentForPackage(pkg);
-        if (launch != null) {
-            startActivity(launch);
-        } else {
-            Toast.makeText(this, label + " not installed", Toast.LENGTH_LONG).show();
-        }
+        Intent launch = getPackageManager().getLaunchIntentForPackage(pkg);
+        if (launch != null) startActivity(launch);
+        else Toast.makeText(this, label + " not installed", Toast.LENGTH_LONG).show();
     }
 
     public class Bridge {
         @JavascriptInterface
         public void openModule(String id) {
+            if (id == null) return;
             runOnUiThread(() -> {
-                if (id == null) return;
                 switch (id) {
                     case "play":
                         webView.loadUrl(ASSET_PLAY);
@@ -101,18 +100,19 @@ public class MainActivity extends AppCompatActivity {
                         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(URL_CONNECTION)));
                         break;
                     default:
-                        Toast.makeText(MainActivity.this, "Unknown module", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, "Unknown: " + id, Toast.LENGTH_SHORT).show();
                 }
             });
         }
 
         @JavascriptInterface
         public void openGame(String id) {
+            if (id == null) return;
             runOnUiThread(() -> {
-                if ("under-the-glow".equals(id)) {
-                    webView.loadUrl(ASSET_GLOW);
-                } else if ("prism".equals(id)) {
+                if ("prism".equals(id)) {
                     webView.loadUrl(ASSET_PRISM);
+                } else if ("under-the-glow".equals(id)) {
+                    webView.loadUrl(ASSET_GLOW);
                 } else {
                     Toast.makeText(MainActivity.this, "Unknown game", Toast.LENGTH_SHORT).show();
                 }

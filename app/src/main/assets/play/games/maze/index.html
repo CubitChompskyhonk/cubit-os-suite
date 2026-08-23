@@ -44,14 +44,14 @@
 <body>
   <div id="wrap">
     <canvas id="c"></canvas>
-    <div id="hud"><b>CUBIT MAZE</b> · WASD / pad · look drag · find the gold exit · <span id="fps">--</span> fps</div>
+    <div id="hud"><b>CUBIT MAZE</b> · W/S walk · A/D turn · pad · find gold exit · <span id="fps">--</span> fps</div>
     <div id="pad">
       <span class="sp"></span>
       <button type="button" data-k="w">▲</button>
       <span class="sp"></span>
-      <button type="button" data-k="a">◀</button>
+      <button type="button" data-k="a">↺</button>
       <button type="button" data-k="s">▼</button>
-      <button type="button" data-k="d">▶</button>
+      <button type="button" data-k="d">↻</button>
     </div>
     <div id="bar">
       <button type="button" id="btnRestart">Restart</button>
@@ -69,18 +69,18 @@
   // 1 = wall, 0 = path, 2 = start, 3 = exit
   const MAP = [
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,2,0,0,1,0,0,0,0,0,1,0,0,0,1],
-    [1,1,1,0,1,0,1,1,1,0,1,0,1,0,1],
+    [1,2,0,0,0,0,0,0,1,0,0,0,0,0,1],
+    [1,1,1,1,1,1,1,0,1,0,1,1,1,0,1],
+    [1,0,0,0,0,0,0,0,0,0,1,0,0,0,1],
+    [1,0,1,1,1,1,1,1,1,1,1,0,1,1,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,1,1,1,1,0,1,1,1,1,1,1,1,0,1],
     [1,0,0,0,0,0,1,0,0,0,0,0,1,0,1],
-    [1,0,1,1,1,1,1,0,1,1,1,1,1,0,1],
+    [1,0,1,1,1,1,1,0,1,1,1,0,1,0,1],
     [1,0,0,0,0,0,0,0,1,0,0,0,0,0,1],
     [1,1,1,1,1,1,1,0,1,0,1,1,1,1,1],
-    [1,0,0,0,0,0,1,0,0,0,1,0,0,0,1],
-    [1,0,1,1,1,0,1,1,1,1,1,0,1,0,1],
-    [1,0,0,0,1,0,0,0,0,0,0,0,1,0,1],
-    [1,1,1,0,1,1,1,1,1,1,1,0,1,0,1],
-    [1,0,0,0,0,0,0,0,0,0,1,0,0,0,1],
-    [1,0,1,1,1,1,1,1,1,0,1,1,1,0,1],
+    [1,0,0,0,0,0,0,0,1,0,0,0,0,0,1],
+    [1,0,1,1,1,1,1,1,1,1,1,1,1,0,1],
     [1,0,0,0,0,0,0,0,0,0,0,0,0,3,1],
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
   ];
@@ -229,17 +229,18 @@
     }
 
     if (!won) {
-      const sp = 2.4 * dt;
+      const sp = 2.6 * dt;
+      const turn = 2.2 * dt;
+      // Tank controls: A/D turn, W/S forward/back along facing
+      if (keys['a'] || keys['arrowleft'] || keys['q']) yaw -= turn;
+      if (keys['d'] || keys['arrowright'] || keys['e']) yaw += turn;
       const cosy = Math.cos(yaw), siny = Math.sin(yaw);
-      let mx = 0, mz = 0;
-      if (keys['w'] || keys['arrowup']) { mx += siny; mz += cosy; }
-      if (keys['s'] || keys['arrowdown']) { mx -= siny; mz -= cosy; }
-      if (keys['a'] || keys['arrowleft']) { mx -= cosy; mz += siny; }
-      if (keys['d'] || keys['arrowright']) { mx += cosy; mz -= siny; }
-      if (keys['q']) yaw -= 1.8 * dt;
-      if (keys['e']) yaw += 1.8 * dt;
-      const len = Math.hypot(mx, mz);
-      if (len > 0) tryMove(px + (mx / len) * sp, pz + (mz / len) * sp);
+      let forward = 0;
+      if (keys['w'] || keys['arrowup']) forward += 1;
+      if (keys['s'] || keys['arrowdown']) forward -= 1;
+      if (forward !== 0) {
+        tryMove(px + siny * sp * forward, pz + cosy * sp * forward);
+      }
     }
 
     // sky + floor

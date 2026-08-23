@@ -301,7 +301,12 @@
     { x: 12, z: 13, type: 'water', label: 'water', color: '#304860', r: 22 },
     // attic
     { x: 8, z: 1, type: 'boxes', label: 'boxes', color: '#6a5030', r: 28, kind: 'box', h: 0.5, w: 0.8 },
-    { x: 9, z: 1, type: 'npc', npc: 'stacker', label: '☺', color: '#a08060', r: 16 }
+    { x: 9, z: 1, type: 'npc', npc: 'stacker', label: '☺', color: '#a08060', r: 16 },
+    { x: 8, z: 2, type: 'bed', label: '', color: '#604860', r: 30, sprite: 'bed' },
+    { x: 9, z: 6, type: 'lamp', label: '', color: '#c9a227', r: 14, sprite: 'lamp_stand' },
+    { x: 4, z: 5, type: 'bookshelf', label: '', color: '#4a3040', r: 22, sprite: 'bookshelf' },
+    { x: 15, z: 5, type: 'plant', label: '', color: '#3a6040', r: 16, sprite: 'plant' },
+    { x: 7, z: 6, type: 'painting', label: '', color: '#806040', r: 18, sprite: 'paintings' }
   ];
 
   var inv = [];
@@ -460,6 +465,33 @@
     } catch (e) {}
   }
 
+  
+  /* --- Haunted house + mob sprites --- */
+  var SPRITES = {};
+  var spriteList = [
+    'sofa','sofa_small','fridge','bed','door','door_open','lamp','lamp_stand','table',
+    'bookshelf','boxes','chair','paintings','plant','window','enemy','character','key',
+    'bg_static','floor','grass',
+    'mob_beasts','mob_smallbeasts','mob_undead','mob_werebeasts','mob_cosmic_horror_dude'
+  ];
+  spriteList.forEach(function (n) {
+    var img = new Image();
+    img.src = 'assets/' + n + '.png';
+    SPRITES[n] = img;
+  });
+
+  function drawSpriteBillboard(worldX, worldY, worldZ, img, scale) {
+    if (!img || !img.complete || !img.naturalWidth) return false;
+    var p = engine.project(worldX, worldY, worldZ);
+    if (!p) return false;
+    var h = Math.max(8, (scale || 48) / Math.max(0.4, p.z * 0.15));
+    var aspect = img.naturalWidth / img.naturalHeight;
+    var w = h * aspect;
+    var g = engine.g;
+    g.drawImage(img, p.x - w / 2, p.y - h, w, h);
+    return true;
+  }
+
   var canvas = document.getElementById('c');
   var engine = new CubitEngine({
     canvas: canvas,
@@ -487,6 +519,47 @@
     }
   });
   engine.bindPad(document.getElementById('pad'));
+
+  function billboard(x, y, z, img, scale) {
+    if (!img || !img.complete || !img.naturalWidth) return false;
+    var p = engine.project(x, y, z);
+    if (!p) return false;
+    var h = Math.max(6, (scale || 48) / Math.max(0.35, p.z * 0.14));
+    var w = h * (img.naturalWidth / img.naturalHeight);
+    engine.g.drawImage(img, p.x - w/2, p.y - h * 0.85, w, h);
+    return true;
+  }
+  var _drawProp = engine.drawProp.bind(engine);
+  engine.drawProp = function(prop) {
+    var map = {
+      couch:'sofa', fridge:'fridge', closet:'door', washer:'boxes', dryer:'boxes',
+      mirror:'window', stove:'table', fence:'grass', boxes:'boxes', tape:'key',
+      remote:'key', note:'key', clock:'lamp', tv:null, vcr:null, water:null, runner:null
+    };
+    var sp = prop.sprite || map[prop.type];
+    if (prop.type === 'npc') {
+      sp = {sitter:'character', watcher:'enemy', stacker:'mob_undead', wrongdog:'mob_werebeasts'}[prop.npc] || 'enemy';
+    }
+    if (sp && SPRITES[sp] && billboard(prop.x+0.5, prop.y||0.15, prop.z+0.5, SPRITES[sp], prop.type==='npc'?60:52))
+      return;
+    return _drawProp(prop);
+  };
+  // wall wallpaper sample from bg_static when available
+  var _drawWall = engine.drawWall.bind(engine);
+  engine.drawWall = function(x, z) {
+    _drawWall(x, z);
+    var img = SPRITES['bg_static'];
+    if (!img || !img.complete || !img.naturalWidth) return;
+    // subtle mid-wall decal on some cells
+    if (((x * 3 + z * 7) % 5) !== 0) return;
+    var p = engine.project(x + 0.5, 0.7, z + 0.5);
+    if (!p || p.z > 10) return;
+    var h = 28 / Math.max(0.5, p.z * 0.2);
+    engine.g.globalAlpha = 0.35;
+    engine.g.drawImage(img, p.x - h * 0.4, p.y - h, h * 0.8, h);
+    engine.g.globalAlpha = 1;
+  };
+
 
   // Polygon walls tinted by room + box props
   engine.drawWall = function (x, z) {

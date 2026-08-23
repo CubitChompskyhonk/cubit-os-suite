@@ -2,15 +2,25 @@
   "schema": 1,
   "console": "Cubit Play",
   "profile": "n64-class",
+  "engine": "cubit-engine",
   "games": [
+    {
+      "id": "glow3d",
+      "title": "Under the Glow 3D",
+      "version": "0.1.0-phase3",
+      "path": "games/glow3d/index.html",
+      "profile": "n64-class",
+      "publisher": "Cubit Games",
+      "description": "TV \u00b7 hall \u00b7 kitchen on Prism engine"
+    },
     {
       "id": "maze",
       "title": "Cubit Maze",
-      "version": "1.0.0",
+      "version": "1.6.1",
       "path": "games/maze/index.html",
       "profile": "n64-class",
       "publisher": "Cubit Play",
-      "description": "Simple 3D maze \u00b7 WASD \u00b7 touch pad \u00b7 find the gold exit"
+      "description": "3D maze \u00b7 tank controls"
     },
     {
       "id": "prism",
@@ -18,17 +28,17 @@
       "version": "0.1.0-phase-a",
       "path": "games/prism/index.html",
       "profile": "n64-class",
-      "publisher": "Cubit Eng + Games",
-      "description": "Engine showcase greybox"
+      "publisher": "Cubit Eng",
+      "description": "Engine showcase"
     },
     {
       "id": "under-the-glow",
-      "title": "Under the Glow",
+      "title": "Under the Glow (classic)",
       "version": "0.16",
       "path": "games/under-the-glow/index.html",
       "profile": "n64-class",
       "publisher": "Cubit Games",
-      "description": "Surreal horror under the TV glow"
+      "description": "Original text+CRT edition"
     }
   ]
 }

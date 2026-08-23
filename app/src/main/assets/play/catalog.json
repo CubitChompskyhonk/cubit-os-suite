@@ -6,12 +6,12 @@
   "games": [
     {
       "id": "tank-wars",
-      "title": "Tank Wars",
-      "version": "1.0.0",
+      "title": "Cubit FPS (Tank Wars foundation)",
+      "version": "2.0.0",
       "path": "games/tank-wars/index.html",
       "profile": "n64-class",
       "publisher": "Cubit Play",
-      "description": "Arcade tank battle \u00b7 projectiles \u00b7 waves"
+      "description": "FPS + bullet hell \u00b7 HP 100 \u00b7 strafe \u00b7 dodgeable shots"
     },
     {
       "id": "glow3d",

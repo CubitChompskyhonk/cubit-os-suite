@@ -3,31 +3,48 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-  <title>Tank Wars</title>
+  <title>Cubit FPS — Arena</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: #0a0e14; color: #d8dde8; font-family: ui-monospace, system-ui, sans-serif; overflow: hidden; height: 100dvh; }
     #wrap { position: relative; width: 100%; height: 100%; }
     canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; touch-action: none; }
+    #cross {
+      position: absolute; left: 50%; top: 46%; width: 14px; height: 14px; margin: -7px 0 0 -7px;
+      border: 1px solid rgba(200,220,255,0.5); border-radius: 50%; pointer-events: none; z-index: 4;
+    }
+    #cross::before, #cross::after {
+      content: ""; position: absolute; background: rgba(200,220,255,0.55);
+    }
+    #cross::before { left: 6px; top: -4px; width: 1px; height: 22px; }
+    #cross::after { top: 6px; left: -4px; width: 22px; height: 1px; }
     #hud {
       position: absolute; left: 0; right: 0; top: 0; z-index: 5; padding: 10px 12px;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.85), transparent);
+      background: linear-gradient(to bottom, rgba(0,0,0,0.88), transparent);
       font-size: 12px; pointer-events: none;
     }
-    #hud b { color: #3dd68c; }
+    #hud b { color: #5b8cff; }
     #hud .hi { color: #c9a227; }
-    #pad {
-      position: absolute; left: 10px; bottom: 70px; z-index: 6;
-      display: grid; grid-template-columns: 48px 48px 48px; gap: 4px;
+    #hud .hp { color: #3dd68c; }
+    #hpbar {
+      position: absolute; left: 12px; bottom: 72px; width: 140px; height: 10px; z-index: 5;
+      background: #1a2030; border: 1px solid #2a3142; border-radius: 4px; overflow: hidden;
     }
-    #pad button, #fireBtn {
-      width: 48px; height: 48px; border-radius: 10px; border: 1px solid #2a3142;
-      background: rgba(20,28,40,0.92); color: #eef1f6; font-size: 16px; font-weight: 700;
+    #hpfill { height: 100%; width: 100%; background: linear-gradient(90deg, #2a8a50, #3dd68c); }
+    #pad {
+      position: absolute; left: 10px; bottom: 88px; z-index: 6;
+      display: grid; grid-template-columns: 46px 46px 46px; gap: 4px;
+    }
+    #pad button, #turnL, #turnR, #fireBtn {
+      width: 46px; height: 46px; border-radius: 10px; border: 1px solid #2a3142;
+      background: rgba(20,28,40,0.92); color: #eef1f6; font-size: 14px; font-weight: 700;
     }
     #pad .sp { visibility: hidden; }
+    #turnL { position: absolute; right: 88px; bottom: 100px; z-index: 6; }
+    #turnR { position: absolute; right: 32px; bottom: 100px; z-index: 6; }
     #fireBtn {
-      position: absolute; right: 16px; bottom: 80px; z-index: 6;
-      width: 72px; height: 72px; border-radius: 50%; border-color: #c9a227; color: #f0e6c8; background: #1a1810;
+      position: absolute; right: 20px; bottom: 160px; z-index: 6;
+      width: 70px; height: 70px; border-radius: 50%; border-color: #5b8cff; color: #cfe0ff; background: #152038;
     }
     #bar {
       position: absolute; left: 0; right: 0; bottom: 0; z-index: 6;
@@ -39,281 +56,303 @@
     }
     #overlay {
       display: none; position: absolute; inset: 0; z-index: 20;
-      background: rgba(5,8,14,0.88); flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+      background: rgba(5,8,14,0.9); flex-direction: column; align-items: center; justify-content: center; gap: 12px;
     }
     #overlay.show { display: flex; }
-    #overlay h1 { font-size: 1.6rem; color: #c9a227; letter-spacing: 0.08em; }
-    #overlay p { color: #8b93a7; font-size: 13px; }
+    #overlay h1 { font-size: 1.5rem; color: #5b8cff; letter-spacing: 0.06em; }
+    #overlay p { color: #8b93a7; font-size: 13px; text-align: center; max-width: 300px; line-height: 1.4; }
     #overlay button {
       font: 700 14px system-ui; padding: 12px 20px; border-radius: 10px;
-      border: 1px solid #5a4a20; background: #1a1810; color: #f0e6c8;
+      border: 1px solid #3a5080; background: #152038; color: #cfe0ff;
     }
   </style>
 </head>
 <body>
   <div id="wrap">
     <div id="hud">
-      <b>TANK WARS</b> ·
-      HP <span id="hp">3</span> ·
+      <b>CUBIT FPS</b> ·
+      HP <span id="hp" class="hp">100</span> ·
       Score <span id="score" class="hi">0</span> ·
       Wave <span id="wave">1</span> ·
       <span id="fps">--</span> fps
     </div>
+    <div id="cross"></div>
+    <div id="hpbar"><div id="hpfill"></div></div>
     <canvas id="c"></canvas>
     <div id="pad">
       <span class="sp"></span>
       <button type="button" data-k="w">▲</button>
       <span class="sp"></span>
-      <button type="button" data-k="a">↺</button>
+      <button type="button" data-k="a">A</button>
       <button type="button" data-k="s">▼</button>
-      <button type="button" data-k="d">↻</button>
+      <button type="button" data-k="d">D</button>
     </div>
+    <button type="button" id="turnL" data-k="q">↺</button>
+    <button type="button" id="turnR" data-k="e">↻</button>
     <button type="button" id="fireBtn">FIRE</button>
     <div id="bar">
       <button type="button" id="btnRestart">Restart</button>
       <button type="button" id="btnConsole">Console</button>
     </div>
-    <div id="overlay">
-      <h1 id="ovTitle">TANK WARS</h1>
-      <p id="ovMsg">W/S drive · A/D turn · FIRE</p>
-      <button type="button" id="btnStart">Start battle</button>
+    <div id="overlay" class="show">
+      <h1>CUBIT FPS</h1>
+      <p>W/S move · A/D strafe · Q/E or drag look · FIRE<br/>Dodge slow enemy shells — bullet-hell arenas</p>
+      <button type="button" id="btnStart">Enter arena</button>
     </div>
   </div>
   <script src="../../engine/cubit-engine.js"></script>
   <script>
 (function () {
-  // Arena map
   var MAP = [
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,1,1,0,0,0,0,0,0,0,1,1,0,0,1],
-    [1,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,1],
-    [1,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,1],
-    [1,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,1],
-    [1,0,0,1,1,0,0,0,0,0,0,0,1,1,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,1,1,0,0,0,0,0,0,0,0,0,1,1,0,0,1],
+    [1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1],
+    [1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,1],
+    [1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1],
+    [1,0,0,1,1,0,0,0,0,0,0,0,0,0,1,1,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
   ];
 
+  /* Enemy archetypes: bullet-hell + FPS damage model */
+  var TYPES = {
+    grunt:  { hp: 2, speed: 1.5, turn: 1.6, shotCd: 1.4, shotSpd: 3.2, damage: 8,  color: '#c05050', score: 100 },
+    sniper: { hp: 1, speed: 1.0, turn: 2.2, shotCd: 2.0, shotSpd: 4.5, damage: 22, color: '#d08040', score: 175 },
+    spray:  { hp: 3, speed: 1.2, turn: 1.2, shotCd: 0.55, shotSpd: 2.6, damage: 5,  color: '#a040a0', score: 125 },
+    tank:   { hp: 6, speed: 0.85, turn: 1.0, shotCd: 1.8, shotSpd: 2.8, damage: 18, color: '#6080b0', score: 250 }
+  };
+
   var canvas = document.getElementById('c');
-  var player = { x: 4.5, z: 6.5, yaw: 0, hp: 3, cooldown: 0, radius: 0.32 };
+  var player = { x: 4.5, z: 6.5, yaw: 0, hp: 100, maxHp: 100, cooldown: 0, radius: 0.28 };
   var enemies = [];
-  var shots = []; // {x,z,yaw,speed,life,from:'player'|'enemy'}
+  var shots = [];
   var score = 0, wave = 1, playing = false, gameOver = false;
   var keys = {};
   var last = performance.now();
-  var frames = 0, fpsT = 0, fps = 0;
+  var frames = 0, fpsT = 0;
 
-  // Use engine only for camera/render helpers + wall collision — custom game loop for combat
   var engine = new CubitEngine({
-    canvas: canvas,
-    map: MAP,
-    x: player.x,
-    z: player.z,
-    yaw: player.yaw,
-    props: [],
-    packs: { crt: true, fog: false },
-    onFrame: function () {}
+    canvas: canvas, map: MAP, x: player.x, z: player.z, yaw: player.yaw,
+    props: [], packs: { crt: true, fog: false }, onFrame: function () {}
   });
-  // We drive engine camera from player each frame
-  engine.running = false; // stop default tick movement; we own controls
+  engine.running = false;
 
-  function solid(x, z) {
-    return engine.solid(x, z);
+  function solid(x, z) { return engine.solid(x, z); }
+
+  function tryMove(ent, nx, nz) {
+    var r = ent.radius;
+    if (!solid(nx - r, ent.z - r) && !solid(nx + r, ent.z - r) &&
+        !solid(nx - r, ent.z + r) && !solid(nx + r, ent.z + r)) ent.x = nx;
+    if (!solid(ent.x - r, nz - r) && !solid(ent.x + r, nz - r) &&
+        !solid(ent.x - r, nz + r) && !solid(ent.x + r, nz + r)) ent.z = nz;
   }
 
   function spawnWave() {
     enemies = [];
-    var n = 2 + wave;
-    var spots = [[12.5, 2.5], [12.5, 10.5], [2.5, 2.5], [8.5, 2.5], [14.5, 6.5], [2.5, 10.5]];
-    for (var i = 0; i < n; i++) {
+    var roster = ['grunt', 'grunt'];
+    if (wave >= 2) roster.push('spray');
+    if (wave >= 3) roster.push('sniper');
+    if (wave >= 4) roster.push('tank');
+    if (wave >= 5) roster.push('spray', 'grunt');
+    var spots = [[14.5, 2.5], [14.5, 10.5], [2.5, 2.5], [9.5, 2.5], [16.5, 6.5], [2.5, 10.5], [11.5, 10.5]];
+    var count = Math.min(spots.length, 2 + wave);
+    for (var i = 0; i < count; i++) {
+      var typeId = roster[i % roster.length];
+      var t = TYPES[typeId];
       var s = spots[i % spots.length];
       enemies.push({
-        x: s[0] + (Math.random() - 0.5) * 0.3,
-        z: s[1] + (Math.random() - 0.5) * 0.3,
-        yaw: Math.random() * Math.PI * 2,
-        hp: 1 + Math.floor(wave / 3),
-        cooldown: 1 + Math.random(),
-        radius: 0.32,
-        turn: (Math.random() < 0.5 ? -1 : 1) * (0.6 + Math.random())
+        type: typeId, x: s[0], z: s[1], yaw: Math.random() * Math.PI * 2,
+        hp: t.hp, maxHp: t.hp, cooldown: 0.5 + Math.random(),
+        radius: 0.3, def: t
       });
     }
   }
 
   function reset() {
-    player = { x: 4.5, z: 6.5, yaw: 0, hp: 3, cooldown: 0, radius: 0.32 };
-    score = 0; wave = 1; gameOver = false; playing = true;
-    shots = [];
+    player = { x: 4.5, z: 6.5, yaw: 0, hp: 100, maxHp: 100, cooldown: 0, radius: 0.28 };
+    score = 0; wave = 1; gameOver = false; playing = true; shots = [];
     spawnWave();
     document.getElementById('overlay').classList.remove('show');
     updateHud();
   }
 
   function updateHud() {
-    document.getElementById('hp').textContent = String(player.hp);
+    document.getElementById('hp').textContent = String(Math.max(0, Math.ceil(player.hp)));
     document.getElementById('score').textContent = String(score);
     document.getElementById('wave').textContent = String(wave);
+    document.getElementById('hpfill').style.width = Math.max(0, (player.hp / player.maxHp) * 100) + '%';
   }
 
-  function fire(from, x, z, yaw) {
+  function fire(from, x, z, yaw, speed, damage) {
     shots.push({
-      x: x + Math.sin(yaw) * 0.45,
-      z: z + Math.cos(yaw) * 0.45,
+      x: x + Math.sin(yaw) * 0.4,
+      z: z + Math.cos(yaw) * 0.4,
       yaw: yaw,
-      speed: from === 'player' ? 9 : 6.5,
-      life: 1.6,
-      from: from
+      speed: speed,
+      life: from === 'player' ? 1.4 : 2.8,
+      from: from,
+      damage: damage || 10
     });
-  }
-
-  function tryMoveEntity(ent, nx, nz) {
-    var r = ent.radius;
-    if (!solid(nx - r, ent.z - r) && !solid(nx + r, ent.z - r) &&
-        !solid(nx - r, ent.z + r) && !solid(nx + r, ent.z + r))
-      ent.x = nx;
-    if (!solid(ent.x - r, nz - r) && !solid(ent.x + r, nz - r) &&
-        !solid(ent.x - r, nz + r) && !solid(ent.x + r, nz + r))
-      ent.z = nz;
   }
 
   function hitTest(sx, sz, ent) {
     var dx = sx - ent.x, dz = sz - ent.z;
-    return dx * dx + dz * dz < (ent.radius + 0.12) * (ent.radius + 0.12);
+    return dx * dx + dz * dz < (ent.radius + 0.14) * (ent.radius + 0.14);
   }
 
-  // Input
+  function playerFire() {
+    if (!playing || gameOver || player.cooldown > 0) return;
+    player.cooldown = 0.22;
+    fire('player', player.x, player.z, player.yaw, 11, 10);
+  }
+
   window.addEventListener('keydown', function (e) {
     keys[e.key.toLowerCase()] = true;
     if (e.key === ' ' || e.key === 'f') { e.preventDefault(); playerFire(); }
   });
   window.addEventListener('keyup', function (e) { keys[e.key.toLowerCase()] = false; });
 
-  document.querySelectorAll('#pad button').forEach(function (btn) {
-    var k = btn.getAttribute('data-k');
-    btn.addEventListener('pointerdown', function (e) { e.preventDefault(); keys[k] = true; });
-    btn.addEventListener('pointerup', function (e) { e.preventDefault(); keys[k] = false; });
-    btn.addEventListener('pointerleave', function () { keys[k] = false; });
+  // Look drag
+  var drag = false, lx = 0;
+  canvas.addEventListener('pointerdown', function (e) {
+    drag = true; lx = e.clientX;
+    try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
   });
+  canvas.addEventListener('pointerup', function () { drag = false; });
+  canvas.addEventListener('pointermove', function (e) {
+    if (!drag || !playing) return;
+    player.yaw += (e.clientX - lx) * 0.007;
+    lx = e.clientX;
+  });
+
+  function bindKeyBtn(el) {
+    if (!el) return;
+    var k = el.getAttribute('data-k');
+    if (!k) return;
+    el.addEventListener('pointerdown', function (e) { e.preventDefault(); keys[k] = true; });
+    el.addEventListener('pointerup', function (e) { e.preventDefault(); keys[k] = false; });
+    el.addEventListener('pointerleave', function () { keys[k] = false; });
+  }
+  document.querySelectorAll('#pad button, #turnL, #turnR').forEach(bindKeyBtn);
   document.getElementById('fireBtn').addEventListener('pointerdown', function (e) {
     e.preventDefault(); playerFire();
   });
 
-  function playerFire() {
-    if (!playing || gameOver) return;
-    if (player.cooldown > 0) return;
-    player.cooldown = 0.35;
-    fire('player', player.x, player.z, player.yaw);
-  }
-
   document.getElementById('btnStart').onclick = reset;
   document.getElementById('btnRestart').onclick = reset;
-  document.getElementById('btnConsole').onclick = function () {
-    location.href = '../../index.html';
-  };
+  document.getElementById('btnConsole').onclick = function () { location.href = '../../index.html'; };
 
-  function endGame(win) {
-    gameOver = true;
-    playing = false;
-    document.getElementById('ovTitle').textContent = win ? 'WAVE CLEAR+' : 'DESTROYED';
-    document.getElementById('ovMsg').textContent = 'Score ' + score + ' · Wave ' + wave;
-    document.getElementById('btnStart').textContent = 'Play again';
+  function endGame() {
+    gameOver = true; playing = false;
+    document.getElementById('ovTitle') && null;
+    document.querySelector('#overlay h1').textContent = 'DOWN';
+    document.querySelector('#overlay p').textContent = 'Score ' + score + ' · Wave ' + wave;
+    document.getElementById('btnStart').textContent = 'Retry';
     document.getElementById('overlay').classList.add('show');
   }
 
   function tick(dt) {
     if (!playing || gameOver) return;
 
-    // Tank controls
-    var turn = 2.4 * dt;
-    if (keys['a'] || keys['arrowleft'] || keys['q']) player.yaw -= turn;
-    if (keys['d'] || keys['arrowright'] || keys['e']) player.yaw += turn;
-    var forward = 0;
-    if (keys['w'] || keys['arrowup']) forward += 1;
-    if (keys['s'] || keys['arrowdown']) forward -= 1;
-    if (forward) {
-      var sp = 3.2 * dt * forward;
-      tryMoveEntity(player, player.x + Math.sin(player.yaw) * sp, player.z + Math.cos(player.yaw) * sp);
+    var turn = 2.5 * dt;
+    if (keys['q'] || keys['arrowleft']) player.yaw -= turn;
+    if (keys['e'] || keys['arrowright']) player.yaw += turn;
+
+    // FPS movement: W/S forward, A/D strafe
+    var cosy = Math.cos(player.yaw), siny = Math.sin(player.yaw);
+    var mx = 0, mz = 0;
+    if (keys['w']) { mx += siny; mz += cosy; }
+    if (keys['s']) { mx -= siny; mz -= cosy; }
+    if (keys['a']) { mx -= cosy; mz += siny; } // strafe left
+    if (keys['d']) { mx += cosy; mz -= siny; } // strafe right
+    var len = Math.hypot(mx, mz);
+    if (len > 0) {
+      var sp = 3.6 * dt;
+      tryMove(player, player.x + (mx / len) * sp, player.z + (mz / len) * sp);
     }
     if (player.cooldown > 0) player.cooldown -= dt;
 
     // Enemies
     enemies.forEach(function (en) {
+      var def = en.def;
       var dx = player.x - en.x, dz = player.z - en.z;
       var dist = Math.hypot(dx, dz) || 1;
       var desired = Math.atan2(dx, dz);
       var diff = desired - en.yaw;
       while (diff > Math.PI) diff -= Math.PI * 2;
       while (diff < -Math.PI) diff += Math.PI * 2;
-      en.yaw += Math.max(-1.8 * dt, Math.min(1.8 * dt, diff));
-      if (dist > 2.2) {
-        tryMoveEntity(en, en.x + Math.sin(en.yaw) * 1.6 * dt, en.z + Math.cos(en.yaw) * 1.6 * dt);
+      en.yaw += Math.max(-def.turn * dt, Math.min(def.turn * dt, diff));
+      if (dist > 2.5) {
+        tryMove(en, en.x + Math.sin(en.yaw) * def.speed * dt, en.z + Math.cos(en.yaw) * def.speed * dt);
+      } else if (en.type === 'spray' && dist < 5) {
+        // strafe circle for bullet hell feel
+        tryMove(en, en.x + Math.cos(en.yaw) * def.speed * 0.7 * dt, en.z - Math.sin(en.yaw) * def.speed * 0.7 * dt);
       }
       en.cooldown -= dt;
-      if (en.cooldown <= 0 && dist < 9) {
-        en.cooldown = 1.1 + Math.random() * 0.8;
-        fire('enemy', en.x, en.z, en.yaw);
+      if (en.cooldown <= 0 && dist < 11) {
+        en.cooldown = def.shotCd * (0.85 + Math.random() * 0.3);
+        if (en.type === 'spray') {
+          // fan of slow bolts
+          for (var a = -0.35; a <= 0.35; a += 0.35) {
+            fire('enemy', en.x, en.z, en.yaw + a, def.shotSpd, def.damage);
+          }
+        } else {
+          fire('enemy', en.x, en.z, en.yaw, def.shotSpd, def.damage);
+        }
       }
     });
 
-    // Shots
+    // Projectiles
     for (var i = shots.length - 1; i >= 0; i--) {
       var s = shots[i];
       s.life -= dt;
       s.x += Math.sin(s.yaw) * s.speed * dt;
       s.z += Math.cos(s.yaw) * s.speed * dt;
-      if (s.life <= 0 || solid(s.x, s.z)) {
-        shots.splice(i, 1);
-        continue;
-      }
+      if (s.life <= 0 || solid(s.x, s.z)) { shots.splice(i, 1); continue; }
       if (s.from === 'player') {
         for (var j = enemies.length - 1; j >= 0; j--) {
           if (hitTest(s.x, s.z, enemies[j])) {
             enemies[j].hp -= 1;
             shots.splice(i, 1);
             if (enemies[j].hp <= 0) {
+              score += enemies[j].def.score;
               enemies.splice(j, 1);
-              score += 100 * wave;
               updateHud();
             }
             break;
           }
         }
       } else if (hitTest(s.x, s.z, player)) {
+        player.hp -= s.damage;
         shots.splice(i, 1);
-        player.hp -= 1;
         updateHud();
-        if (player.hp <= 0) endGame(false);
+        if (player.hp <= 0) endGame();
       }
     }
 
     if (enemies.length === 0) {
       wave += 1;
-      score += 250;
+      score += 300;
       updateHud();
       spawnWave();
     }
 
-    // Sync camera
     engine.px = player.x;
     engine.pz = player.z;
     engine.yaw = player.yaw;
   }
 
-  function drawTank(x, z, yaw, color, isPlayer) {
+  function drawActor(x, z, yaw, color) {
     var g = engine.g;
-    // body as small box in world via project
-    var corners = [
-      [-0.28, 0.15, -0.35], [0.28, 0.15, -0.35], [0.28, 0.15, 0.35], [-0.28, 0.15, 0.35]
-    ];
+    var corners = [[-0.26, 0.2, -0.3], [0.26, 0.2, -0.3], [0.26, 0.2, 0.3], [-0.26, 0.2, 0.3]];
     var cos = Math.cos(yaw), sin = Math.sin(yaw);
     var pts = corners.map(function (c) {
-      var wx = x + c[0] * cos - c[2] * sin;
-      var wz = z + c[0] * sin + c[2] * cos;
-      return engine.project(wx, c[1], wz);
+      return engine.project(x + c[0] * cos - c[2] * sin, c[1], z + c[0] * sin + c[2] * cos);
     });
     if (pts.some(function (p) { return !p; })) return;
     g.beginPath();
@@ -322,93 +361,21 @@
     g.closePath();
     g.fillStyle = color;
     g.fill();
-    // barrel
-    var bx = x + Math.sin(yaw) * 0.45;
-    var bz = z + Math.cos(yaw) * 0.45;
-    var p0 = engine.project(x, 0.28, z);
-    var p1 = engine.project(bx, 0.28, bz);
-    if (p0 && p1) {
-      g.strokeStyle = isPlayer ? '#c9a227' : '#a0a8b8';
-      g.lineWidth = 2;
-      g.beginPath();
-      g.moveTo(p0.x, p0.y);
-      g.lineTo(p1.x, p1.y);
-      g.stroke();
-    }
   }
 
   function drawShot(s) {
-    var p = engine.project(s.x, 0.35, s.z);
+    var p = engine.project(s.x, 0.4, s.z);
     if (!p) return;
     var g = engine.g;
-    g.fillStyle = s.from === 'player' ? '#f0e080' : '#ff6060';
+    var r = s.from === 'player' ? 2.5 : 4;
+    g.fillStyle = s.from === 'player' ? '#9ec0ff' : (s.damage >= 18 ? '#ff7040' : '#ff90c0');
     g.beginPath();
-    g.arc(p.x, p.y, 3, 0, Math.PI * 2);
+    g.arc(p.x, p.y, r, 0, Math.PI * 2);
     g.fill();
   }
 
-  // Override render to include tanks after walls
-  var baseRender = engine.render.bind(engine);
-  engine.render = function () {
-    // walls only path from base: clear + floor + walls
-    var g = this.g, IW = this.IW, IH = this.IH;
-    g.fillStyle = '#0c121c';
-    g.fillRect(0, 0, IW, IH / 2);
-    g.fillStyle = '#1a2430';
-    g.fillRect(0, IH / 2, IW, IH / 2);
-    // grid floor tint
-    var walls = [];
-    for (var z = 0; z < this.rows; z++) {
-      for (var x = 0; x < this.cols; x++) {
-        if (this.map[z][x] !== 1) continue;
-        var dx = x + 0.5 - this.px, dz = z + 0.5 - this.pz;
-        walls.push({ x: x, z: z, d: dx * dx + dz * dz });
-      }
-    }
-    walls.sort(function (a, b) { return b.d - a.d; });
-    var self = this;
-    walls.forEach(function (w) {
-      self.drawWall(w.x, w.z, [45, 58, 78]);
-    });
-
-    // shots under tanks
-    shots.forEach(drawShot);
-    enemies.forEach(function (en) { drawTank(en.x, en.z, en.yaw, '#c05050', false); });
-    if (playing) drawTank(player.x, player.z, player.yaw, '#3d8c5c', true);
-
-    // minimap
-    var ms = 3;
-    g.fillStyle = 'rgba(0,0,0,0.55)';
-    g.fillRect(IW - this.cols * ms - 8, 8, this.cols * ms + 4, this.rows * ms + 4);
-    for (var zz = 0; zz < this.rows; zz++) {
-      for (var xx = 0; xx < this.cols; xx++) {
-        g.fillStyle = this.map[zz][xx] === 1 ? '#3a4558' : '#1a2435';
-        g.fillRect(IW - this.cols * ms - 6 + xx * ms, 10 + zz * ms, ms - 1, ms - 1);
-      }
-    }
-    g.fillStyle = '#3dd68c';
-    g.fillRect(IW - this.cols * ms - 6 + player.x * ms - 1, 10 + player.z * ms - 1, 3, 3);
-    g.fillStyle = '#e06060';
-    enemies.forEach(function (en) {
-      g.fillRect(IW - self.cols * ms - 6 + en.x * ms - 1, 10 + en.z * ms - 1, 3, 3);
-    });
-
-    var ctx = this.ctx;
-    ctx.imageSmoothingEnabled = false;
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-    ctx.drawImage(this.off, 0, 0, this.canvas.width, this.canvas.height);
-    if (this.packs.crt) {
-      ctx.fillStyle = 'rgba(0,0,0,0.1)';
-      for (var y = 0; y < this.canvas.height; y += 3) ctx.fillRect(0, y, this.canvas.width, 1);
-    }
-  };
-
-  // Patch drawWall to accept color base - engine may ignore third arg; local call uses it
-  var origWall = engine.drawWall.bind(engine);
-  engine.drawWall = function (x, z, colorBase) {
-    var g = this.g, h = 1.0;
-    var base = colorBase || [42, 52, 72];
+  engine.drawWall = function (x, z) {
+    var g = this.g, h = 1.05, base = [40, 52, 72];
     var v = [
       [x, 0, z], [x + 1, 0, z], [x + 1, 0, z + 1], [x, 0, z + 1],
       [x, h, z], [x + 1, h, z], [x + 1, h, z + 1], [x, h, z + 1]
@@ -430,25 +397,68 @@
     });
   };
 
+  engine.render = function () {
+    var g = this.g, IW = this.IW, IH = this.IH;
+    g.fillStyle = '#0b1018';
+    g.fillRect(0, 0, IW, IH / 2);
+    g.fillStyle = '#151c28';
+    g.fillRect(0, IH / 2, IW, IH / 2);
+    var walls = [];
+    for (var z = 0; z < this.rows; z++)
+      for (var x = 0; x < this.cols; x++)
+        if (this.map[z][x] === 1) {
+          var dx = x + 0.5 - this.px, dz = z + 0.5 - this.pz;
+          walls.push({ x: x, z: z, d: dx * dx + dz * dz });
+        }
+    walls.sort(function (a, b) { return b.d - a.d; });
+    var self = this;
+    walls.forEach(function (w) { self.drawWall(w.x, w.z); });
+    shots.forEach(drawShot);
+    enemies.forEach(function (en) { drawActor(en.x, en.z, en.yaw, en.def.color); });
+
+    // minimap
+    var ms = 3;
+    g.fillStyle = 'rgba(0,0,0,0.55)';
+    g.fillRect(IW - this.cols * ms - 8, 8, this.cols * ms + 4, this.rows * ms + 4);
+    for (var zz = 0; zz < this.rows; zz++)
+      for (var xx = 0; xx < this.cols; xx++) {
+        g.fillStyle = this.map[zz][xx] === 1 ? '#3a4558' : '#1a2435';
+        g.fillRect(IW - this.cols * ms - 6 + xx * ms, 10 + zz * ms, ms - 1, ms - 1);
+      }
+    g.fillStyle = '#5b8cff';
+    g.fillRect(IW - this.cols * ms - 6 + player.x * ms - 1, 10 + player.z * ms - 1, 3, 3);
+    g.fillStyle = '#e06060';
+    enemies.forEach(function (en) {
+      g.fillRect(IW - self.cols * ms - 6 + en.x * ms - 1, 10 + en.z * ms - 1, 3, 3);
+    });
+
+    var ctx = this.ctx;
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    ctx.drawImage(this.off, 0, 0, this.canvas.width, this.canvas.height);
+    if (this.packs.crt) {
+      ctx.fillStyle = 'rgba(0,0,0,0.08)';
+      for (var y = 0; y < this.canvas.height; y += 3) ctx.fillRect(0, y, this.canvas.width, 1);
+    }
+  };
+
   function loop(now) {
     var dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     frames++; fpsT += dt;
     if (fpsT >= 0.4) {
-      fps = Math.round(frames / fpsT);
+      document.getElementById('fps').textContent = String(Math.round(frames / fpsT));
       frames = 0; fpsT = 0;
-      document.getElementById('fps').textContent = String(fps);
     }
     tick(dt);
     engine.render();
     requestAnimationFrame(loop);
   }
-
-  document.getElementById('overlay').classList.add('show');
   requestAnimationFrame(loop);
 
   try {
-    localStorage.setItem('cubit_play_session', JSON.stringify({ game: 'tank-wars', ts: Date.now() }));
+    localStorage.setItem('cubit_play_session', JSON.stringify({ game: 'cubit-fps', ts: Date.now() }));
   } catch (e) {}
 })();
   </script>

@@ -6,43 +6,48 @@
   <title>Under the Glow 3D</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #07060b; color: #e4dcd2; font-family: Georgia, serif; overflow: hidden; height: 100dvh; }
-    #wrap { position: relative; width: 100%; height: 100%; }
-    canvas { display: block; width: 100%; height: 58%; touch-action: none; image-rendering: pixelated; }
-    #log {
-      height: 27%; overflow-y: auto; padding: 8px 12px; background: #0c0a10;
-      border-top: 1px solid #1e1a28; font-size: 13px; line-height: 1.4;
+    body { background: #07060b; color: #e4dcd2; font-family: Georgia, "Times New Roman", serif; overflow: hidden; height: 100dvh; }
+    #wrap { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; }
+    canvas { display: block; width: 100%; flex: 1 1 auto; min-height: 42%; touch-action: none; image-rendering: pixelated; }
+    #hud {
+      position: absolute; left: 0; right: 0; top: 0; z-index: 5; padding: 8px 10px;
+      font: 10px ui-monospace, monospace; color: #6e6878;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.85), transparent); pointer-events: none;
     }
+    #hud b { color: #9b8cff; }
+    #danger {
+      display: none; position: absolute; left: 0; right: 0; top: 0; height: 55%;
+      background: rgba(90,0,24,0.28); z-index: 3; pointer-events: none;
+    }
+    #danger.on { display: block; animation: pulse 0.35s steps(2,end) infinite; }
+    @keyframes pulse { 50% { background: rgba(140,0,36,0.42); } }
+    #pad {
+      position: absolute; right: 8px; top: 36%; z-index: 6;
+      display: grid; grid-template-columns: 44px 44px 44px; gap: 4px;
+    }
+    #pad button {
+      width: 44px; height: 44px; border-radius: 8px; border: 1px solid #2a2435;
+      background: rgba(18,14,26,0.94); color: #e4dcd2; font-size: 14px;
+    }
+    #pad .sp { visibility: hidden; }
+    #panel {
+      flex: 0 0 auto; max-height: 48%; display: flex; flex-direction: column;
+      border-top: 1px solid #1e1a28; background: #0c0a10;
+    }
+    #roomtitle {
+      font: 600 11px ui-monospace, monospace; letter-spacing: 0.12em; text-transform: uppercase;
+      color: #9b8cff; padding: 6px 12px 0;
+    }
+    #log { flex: 1; overflow-y: auto; padding: 6px 12px 8px; font-size: 13px; line-height: 1.45; }
     #log p { margin-bottom: 5px; }
     #log .sys { color: #6e6878; font-family: ui-monospace, monospace; font-size: 11px; }
     #log .ok { color: #7a9e82; }
     #log .bad { color: #d06070; }
     #log .tv { color: #7ec8ff; }
     #log .npc { color: #c9a227; }
-    #hud {
-      position: absolute; left: 0; right: 0; top: 0; padding: 6px 10px;
-      font: 10px ui-monospace, monospace; color: #6e6878; pointer-events: none;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); z-index: 4;
-    }
-    #hud b { color: #9b8cff; }
-    #danger {
-      display: none; position: absolute; left: 0; right: 0; top: 0; bottom: 42%;
-      background: rgba(80,0,20,0.25); pointer-events: none; z-index: 3;
-    }
-    #danger.on { display: block; animation: pulse 0.4s steps(2, end) infinite; }
-    @keyframes pulse { 50% { background: rgba(120,0,30,0.4); } }
-    #pad {
-      position: absolute; right: 8px; top: 38%; z-index: 5;
-      display: grid; grid-template-columns: 42px 42px 42px; gap: 3px;
-    }
-    #pad button {
-      width: 42px; height: 42px; border-radius: 8px; border: 1px solid #2a2435;
-      background: rgba(20,16,28,0.92); color: #e4dcd2; font-size: 13px;
-    }
-    #pad .sp { visibility: hidden; }
     #actions {
-      height: 15%; padding: 6px 8px; background: #100e16; border-top: 1px solid #1e1a28;
-      display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start;
+      display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 8px 10px;
+      border-top: 1px solid #1a1622;
     }
     #actions button {
       font: 600 12px system-ui; padding: 8px 10px; border-radius: 8px;
@@ -51,12 +56,13 @@
     #actions button.warn { border-color: #803040; color: #f0c0c8; }
     #actions button.tv { border-color: #3a6080; color: #b8d8ff; }
     #death {
-      display: none; position: absolute; inset: 0; z-index: 20;
-      background: #050308; color: #d06070; flex-direction: column;
-      align-items: center; justify-content: center; gap: 12px; text-align: center; padding: 20px;
+      display: none; position: absolute; inset: 0; z-index: 30;
+      background: #050308; flex-direction: column; align-items: center; justify-content: center;
+      gap: 14px; text-align: center; padding: 24px;
     }
     #death.show { display: flex; }
-    #death h1 { font-size: 1.3rem; letter-spacing: 0.1em; }
+    #death h1 { color: #d06070; letter-spacing: 0.2em; font-size: 1.4rem; }
+    #death p { color: #8a8090; max-width: 300px; }
     #death button {
       font: 700 13px system-ui; padding: 12px 18px; border-radius: 10px;
       border: 1px solid #5a3040; background: #1a1018; color: #e4dcd2;
@@ -66,8 +72,9 @@
 <body>
   <div id="wrap">
     <div id="hud">
-      <b>UNDER THE GLOW 3D</b> · Phase 4 ·
-      <span id="room">—</span> · tapes <span id="tapes">0</span> ·
+      <b>UNDER THE GLOW</b> ·
+      <span id="room">—</span> ·
+      tapes <span id="tapes">0</span> ·
       <span id="fps">--</span> fps
       <span id="dtimer"></span>
     </div>
@@ -81,64 +88,231 @@
       <button type="button" data-k="s">▼</button>
       <button type="button" data-k="d">↻</button>
     </div>
-    <div id="log"></div>
-    <div id="actions">
-      <button type="button" id="btnLook">Look</button>
-      <button type="button" id="btnTake">Take</button>
-      <button type="button" id="btnPlay" class="tv">Play tape at TV</button>
-      <button type="button" id="btnHide" class="warn">Hide</button>
-      <button type="button" id="btnFlee" class="warn">Flee</button>
-      <button type="button" id="btnFight" class="warn">Fight</button>
-      <button type="button" id="btnConsole">Console</button>
+    <div id="panel">
+      <div id="roomtitle">—</div>
+      <div id="log"></div>
+      <div id="actions">
+        <button type="button" id="btnLook">Look</button>
+        <button type="button" id="btnTake">Take</button>
+        <button type="button" id="btnTalk">Talk</button>
+        <button type="button" id="btnPlay" class="tv">Play tape</button>
+        <button type="button" id="btnHide" class="warn">Hide</button>
+        <button type="button" id="btnFlee" class="warn">Flee</button>
+        <button type="button" id="btnFight" class="warn">Fight</button>
+        <button type="button" id="btnAudio">Audio</button>
+        <button type="button" id="btnConsole">Console</button>
+      </div>
     </div>
     <div id="death">
       <h1>STATIC</h1>
-      <p style="color:#8a8090;max-width:280px;font-size:14px" id="deathReason">The house takes a small trophy.</p>
+      <p id="deathReason">The house takes a small trophy.</p>
       <button type="button" id="btnRespawn">Wake under the glow</button>
     </div>
   </div>
   <script src="../../engine/cubit-engine.js"></script>
   <script>
 (function () {
-  // 1 wall · 0 floor · start in TV
-  // Rooms by x: TV x<=4 · HALL 5-10 · KITCHEN 11+ · BED  via south spur · YARD north open
+  /* Faithful room graph from classic Under the Glow */
+  var ROOMS = {
+    tv: {
+      name: 'Under the Glow',
+      desc: 'A dead channel that still breathes. A VCR mouth waits under the set. Blue-white static paints the carpet.',
+      color: [28, 48, 95]
+    },
+    hall: {
+      name: 'The Hall That Lengthens',
+      desc: 'Wallpaper breathes on a delay. The runner loses track of feet.',
+      color: [40, 34, 52]
+    },
+    mirror: {
+      name: 'Bathroom Mirror',
+      desc: 'The mirror is a rectangle of delayed truth. Fog writes before you do.',
+      color: [36, 42, 58],
+      npc: 'watcher'
+    },
+    kitchen: {
+      name: 'Kitchen at 3:17',
+      desc: 'Fridge light, stove-eye, proud clock. Labels wait to be believed.',
+      color: [58, 40, 38]
+    },
+    yard: {
+      name: 'Yard with the Wrong Dog',
+      desc: 'Night grass. A shape practices being friendly. A tape might catch on the fence.',
+      color: [28, 48, 40]
+    },
+    basement: {
+      name: 'Basement Stairs',
+      desc: 'Cold climbs. Water talks late. Something answers the static with lag.',
+      color: [24, 24, 36]
+    },
+    living: {
+      name: 'Living Room That Was',
+      desc: 'Furniture faces a wall where a TV used to be. Something still sits on the couch as if the show continues.',
+      color: [32, 40, 55],
+      npc: 'sitter'
+    },
+    laundry: {
+      name: 'Laundry Behind the House',
+      desc: 'Machines sleep mid-cycle. A drain remembers floods. Hum under the hum.',
+      color: [30, 42, 48]
+    },
+    bedroom: {
+      name: 'Bedroom Without a Bed',
+      desc: 'Mattress gone. Closet ajar. Dust still holds the outline of sleep.',
+      color: [40, 30, 48]
+    },
+    attic: {
+      name: 'Attic Mouth',
+      desc: 'Heat and fiberglass smell. Boxes labeled with years that skip. A figure by the ladder does not climb.',
+      color: [48, 38, 28],
+      npc: 'stacker'
+    }
+  };
+
+  var TAPES = {
+    'tape-a': { title: 'TAPE A — BEDTIME', room: 'bedroom', lines: [
+      '[tracking noise]',
+      'VOICE (soft): If you leave the glow, count to twenty and come back.',
+      'VOICE: The house learns faces when the set is off.',
+      'VOICE: Keep the channel open. Even on static.'
+    ]},
+    'tape-b': { title: 'TAPE B — MIRROR', room: 'mirror', lines: [
+      '[hum]',
+      'VOICE: Fog is just the glass breathing.',
+      'VOICE: Do not let it write your name first.',
+      'VOICE: If it already has, you are marked whether you agree or not.'
+    ]},
+    'tape-c': { title: 'TAPE C — KITCHEN', room: 'kitchen', lines: [
+      '[fridge compressor]',
+      'VOICE: 3:17 is when checks used to happen.',
+      'VOICE: Labels lie to be kind. Kindness is a kind of trap.',
+      'VOICE: Feed the eye if it stares. It remembers hunger.'
+    ]},
+    'tape-d': { title: 'TAPE D — YARD', room: 'yard', lines: [
+      '[wind on mic]',
+      'VOICE: Do not name what wags.',
+      'VOICE: Names are handles. Handles open doors.',
+      'VOICE: If it already knows you, run to the glow.'
+    ]},
+    'tape-f': { title: 'TAPE F — COUCH', room: 'living', lines: [
+      '[sitcom laugh, empty]',
+      'VOICE: The living room kept watching after the set moved.',
+      'VOICE: If someone is still on the couch, do not sit beside them.',
+      'VOICE: They are practicing being a family.'
+    ]},
+    'tape-g': { title: 'TAPE G — CYCLE', room: 'laundry', lines: [
+      '[washer spin]',
+      'VOICE: Dirt leaves. Names stick in the lint trap.',
+      'VOICE: If the machine stops on your number, leave.'
+    ]}
+  };
+
+  var NPCS = {
+    sitter: { name: 'the sitter', look: 'A person-shaped absence on the couch. The face is static when you focus.', talk: 'The sitter laughs one second late, at nothing. Then: "Wrong channel."' },
+    watcher: { name: 'the watcher', look: 'Only in the glass when you are not looking at yourself.', talk: 'Fog answers before you finish the sentence.' },
+    stacker: { name: 'the stacker', look: 'Someone sorting boxes by a year that has not happened. Hands like soft tape.', talk: 'It offers you a box lid. Inside: dust shaped like a name.' },
+    wrongdog: { name: 'the wrong dog', look: 'A shape at the fence practicing wag. Do not name it.', talk: 'It does not bark. It invents the memory of a bark.' }
+  };
+
+  /* Map: 0 floor, 1 wall — layout approximates classic exits
+     Columns: laundry(1-3) living(4-6) tv(7-10) hall(11-14) mirror(15-17) kitchen spur north of hall
+     yard south of hall, basement further south, bedroom north of tv, attic north of bedroom
+  */
+  var W = 1, F = 0;
   var MAP = [
+    // z0 attic
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,1],
-    [1,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,1],
+    [1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1],
+    // bedroom
+    [1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1],
+    // living - tv - hall - mirror · kitchen north pocket via hall
     [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,1],
-    [1,1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1],
     [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,1,1,1,0,1,1,0,0,0,0,0,0,0,0,1,1,1,1],
+    // kitchen row (north of deeper hall) — accessible from hall column
+    [1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1],
+    // yard
+    [1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1],
+    // basement
+    [1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1],
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
   ];
 
-  var TAPES = {
-    'tape-a': { id: 'tape-a', title: 'TAPE A — TV', lore: 'The glow keeps a ledger. Names are checked twice.' },
-    'tape-b': { id: 'tape-b', title: 'TAPE B — HALL', lore: 'The wallpaper maps exits that move when unobserved.' },
-    'tape-c': { id: 'tape-c', title: 'TAPE C — KITCHEN', lore: 'EAT ME / DO NOT. The fridge is a white upright coffin.' }
-  };
+  // Zone classifier matching map
+  function roomAt(x, z) {
+    if (z <= 2 && x >= 7 && x <= 10) return 'attic';
+    if (z >= 3 && z <= 4 && x >= 7 && x <= 10) return 'bedroom';
+    if (z >= 5 && z <= 7) {
+      if (x <= 3) return 'laundry';
+      if (x <= 6) return 'living';
+      if (x <= 10) return 'tv';
+      if (x <= 14) return 'hall';
+      return 'mirror';
+    }
+    if (z >= 8 && z <= 10 && x >= 11 && x <= 13) return 'kitchen';
+    if (z >= 11 && z <= 12 && x >= 11 && x <= 13) return 'yard';
+    if (z >= 13 && x >= 11 && x <= 13) return 'basement';
+    if (x <= 3) return 'laundry';
+    if (x <= 6) return 'living';
+    if (x <= 10) return 'tv';
+    if (x <= 14) return 'hall';
+    return 'mirror';
+  }
 
+  // Polygon props: boxes + markers
   var props = [
-    { x: 2, z: 2, type: 'tv', label: 'TV', color: '#7ec8ff', r: 40 },
-    { x: 1, z: 1, type: 'tape', tape: 'tape-a', label: 'tape', color: '#c07080', r: 18 },
-    { x: 3, z: 4, type: 'remote', label: 'remote', color: '#9b8cff', r: 16 },
-    { x: 8, z: 3, type: 'tape', tape: 'tape-b', label: 'tape', color: '#c07080', r: 18 },
-    { x: 9, z: 1, type: 'door', label: '', color: '#4a4060', r: 14 },
-    { x: 14, z: 2, type: 'fridge', label: 'fridge', color: '#a8b0c0', r: 28 },
-    { x: 15, z: 1, type: 'tape', tape: 'tape-c', label: 'tape', color: '#c07080', r: 18 },
-    { x: 13, z: 4, type: 'note', label: 'note', color: '#c9a227', r: 16 },
-    { x: 16, z: 3, type: 'watcher', label: '?', color: '#604050', r: 22 }
+    // TV room
+    { x: 8, z: 6, type: 'tv', label: 'TV', color: '#7ec8ff', r: 42, kind: 'box', h: 0.9, w: 0.7 },
+    { x: 9, z: 6, type: 'vcr', label: 'VCR', color: '#4a6080', r: 20, kind: 'box', h: 0.25, w: 0.5 },
+    { x: 7, z: 5, type: 'remote', label: 'remote', color: '#9b8cff', r: 14 },
+    // bedroom tape A
+    { x: 8, z: 3, type: 'tape', tape: 'tape-a', label: 'tape', color: '#c07080', r: 16 },
+    { x: 9, z: 4, type: 'closet', label: 'closet', color: '#3a3048', r: 24, kind: 'box', h: 1.1, w: 0.6 },
+    // living
+    { x: 5, z: 6, type: 'couch', label: 'couch', color: '#4a5068', r: 30, kind: 'box', h: 0.4, w: 1.2 },
+    { x: 5, z: 6, type: 'npc', npc: 'sitter', label: '☺', color: '#a090b0', r: 18 },
+    { x: 4, z: 7, type: 'tape', tape: 'tape-f', label: 'tape', color: '#c07080', r: 16 },
+    // laundry
+    { x: 2, z: 6, type: 'washer', label: 'wash', color: '#608090', r: 26, kind: 'box', h: 0.8, w: 0.6 },
+    { x: 1, z: 6, type: 'dryer', label: 'dry', color: '#507080', r: 26, kind: 'box', h: 0.8, w: 0.6 },
+    { x: 2, z: 7, type: 'tape', tape: 'tape-g', label: 'tape', color: '#c07080', r: 16 },
+    // hall
+    { x: 12, z: 6, type: 'runner', label: '', color: '#3a2848', r: 12 },
+    { x: 13, z: 5, type: 'tape', tape: 'tape-b', label: 'tape', color: '#c07080', r: 16 },
+    // mirror
+    { x: 16, z: 6, type: 'mirror', label: 'mirror', color: '#90a0b8', r: 32, kind: 'box', h: 1.0, w: 0.15 },
+    { x: 16, z: 6, type: 'npc', npc: 'watcher', label: '?', color: '#708090', r: 14 },
+    // kitchen
+    { x: 12, z: 9, type: 'fridge', label: 'fridge', color: '#b0b8c8', r: 30, kind: 'box', h: 1.1, w: 0.6 },
+    { x: 13, z: 9, type: 'stove', label: 'stove', color: '#403038', r: 24, kind: 'box', h: 0.5, w: 0.6 },
+    { x: 12, z: 10, type: 'clock', label: '3:17', color: '#c9a227', r: 14 },
+    { x: 13, z: 10, type: 'tape', tape: 'tape-c', label: 'tape', color: '#c07080', r: 16 },
+    { x: 11, z: 9, type: 'note', label: 'note', color: '#c9a227', r: 14 },
+    // yard
+    { x: 12, z: 12, type: 'fence', label: 'fence', color: '#2a4030', r: 20, kind: 'box', h: 0.6, w: 1.4 },
+    { x: 13, z: 12, type: 'npc', npc: 'wrongdog', label: 'wag?', color: '#506048', r: 18 },
+    { x: 12, z: 11, type: 'tape', tape: 'tape-d', label: 'tape', color: '#c07080', r: 16 },
+    // basement
+    { x: 12, z: 13, type: 'water', label: 'water', color: '#304860', r: 22 },
+    // attic
+    { x: 8, z: 1, type: 'boxes', label: 'boxes', color: '#6a5030', r: 28, kind: 'box', h: 0.5, w: 0.8 },
+    { x: 9, z: 1, type: 'npc', npc: 'stacker', label: '☺', color: '#a08060', r: 16 }
   ];
 
   var inv = [];
-  var flags = { remote: false, note: false, watched: false };
+  var tapesPlayed = {};
+  var flags = { remote: false, note: false, sock: false, marked: false, named: false, seen: false };
   var hideCount = 0, fightCount = 0;
-  var danger = { active: false, until: 0, windowLeft: 0 };
+  var danger = { active: false, until: 0 };
   var dead = false;
-  var logEl = document.getElementById('log');
+  var lastRoom = '';
 
+  var logEl = document.getElementById('log');
   function say(msg, cls) {
     var p = document.createElement('p');
     if (cls) p.className = cls;
@@ -147,31 +321,69 @@
     logEl.scrollTop = logEl.scrollHeight;
   }
 
-  function roomAt(x, z) {
-    if (z >= 6) return 'basement-ish';
-    if (x <= 4) return 'tv';
-    if (x >= 12) return 'kitchen';
-    return 'hall';
+  /* --- Audio: ambient + danger shift --- */
+  var audio = { ctx: null, osc: null, gain: null, lfo: null, started: false };
+  function ensureAudio() {
+    if (audio.started) return;
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      audio.ctx = new AC();
+      audio.osc = audio.ctx.createOscillator();
+      audio.gain = audio.ctx.createGain();
+      audio.lfo = audio.ctx.createOscillator();
+      var lfoGain = audio.ctx.createGain();
+      audio.osc.type = 'sawtooth';
+      audio.osc.frequency.value = 55;
+      audio.gain.gain.value = 0.03;
+      audio.lfo.frequency.value = 0.15;
+      lfoGain.gain.value = 8;
+      audio.lfo.connect(lfoGain);
+      lfoGain.connect(audio.osc.frequency);
+      audio.osc.connect(audio.gain);
+      audio.gain.connect(audio.ctx.destination);
+      audio.osc.start();
+      audio.lfo.start();
+      audio.started = true;
+      say('Chip-static online.', 'sys');
+    } catch (e) {
+      say('Audio unavailable on this device.', 'sys');
+    }
   }
-  function roomName(r) {
-    return ({ tv: 'TV ROOM', hall: 'HALL', kitchen: 'KITCHEN', 'basement-ish': 'LOWER' })[r] || r;
+  function setDangerAudio(on) {
+    if (!audio.started) return;
+    if (on) {
+      audio.osc.frequency.setTargetAtTime(110, audio.ctx.currentTime, 0.05);
+      audio.gain.gain.setTargetAtTime(0.06, audio.ctx.currentTime, 0.05);
+      audio.lfo.frequency.setTargetAtTime(4.5, audio.ctx.currentTime, 0.05);
+    } else {
+      audio.osc.frequency.setTargetAtTime(55, audio.ctx.currentTime, 0.2);
+      audio.gain.gain.setTargetAtTime(0.03, audio.ctx.currentTime, 0.2);
+      audio.lfo.frequency.setTargetAtTime(0.15, audio.ctx.currentTime, 0.2);
+    }
   }
 
   function tapeCount() {
     return inv.filter(function (i) { return i.indexOf('tape') === 0; }).length;
   }
-
   function near(type, dist) {
-    dist = dist || 1.35;
+    dist = dist || 1.4;
     for (var i = 0; i < props.length; i++) {
       var pr = props[i];
-      if (type && pr.type !== type) continue;
+      if (type && pr.type !== type && !(type === 'tape' && pr.type === 'tape')) continue;
+      if (type === 'npc' && pr.type !== 'npc') continue;
+      if (type && pr.type !== type && type !== 'any') continue;
       var dx = pr.x + 0.5 - engine.px, dz = pr.z + 0.5 - engine.pz;
       if (dx * dx + dz * dz < dist * dist) return pr;
     }
     return null;
   }
-
+  function nearAny(types, dist) {
+    for (var i = 0; i < types.length; i++) {
+      var p = near(types[i], dist);
+      if (p) return p;
+    }
+    return null;
+  }
   function removeProp(pred) {
     props = props.filter(function (p) { return !pred(p); });
     engine.props = props;
@@ -180,18 +392,18 @@
   function startDanger(reason) {
     if (dead || danger.active) return;
     danger.active = true;
-    danger.until = performance.now() + 6000;
-    danger.timeLeft = 6;
+    danger.until = performance.now() + 7000;
     document.getElementById('danger').classList.add('on');
-    say(reason || 'Something enters the room-shape. Choose: Hide · Flee · Fight.', 'bad');
+    setDangerAudio(true);
+    say(reason || 'Something enters the room-shape.', 'bad');
+    say('Hide · Flee · Fight — you do not have long.', 'bad');
   }
-
   function endDanger() {
     danger.active = false;
     document.getElementById('danger').classList.remove('on');
     document.getElementById('dtimer').textContent = '';
+    setDangerAudio(false);
   }
-
   function die(reason) {
     dead = true;
     endDanger();
@@ -201,49 +413,44 @@
     say(reason, 'bad');
     save();
   }
-
   function respawn() {
     dead = false;
     document.getElementById('death').classList.remove('show');
-    engine.px = 2.5;
-    engine.pz = 2.5;
-    engine.yaw = 0;
+    engine.px = 8.5; engine.pz = 6.5; engine.yaw = 0;
     engine.running = true;
     say('You wake under the glow. Status kept.', 'tv');
-    scheduleDanger();
+    setDangerAudio(false);
   }
-
   function scheduleDanger() {
     setTimeout(function tick() {
       if (dead) return;
-      if (!danger.active && Math.random() < 0.55) {
+      if (!danger.active && Math.random() < 0.5) {
         var r = roomAt(Math.floor(engine.px), Math.floor(engine.pz));
-        if (r === 'tv') say('The glow warns: do not stray too long.', 'tv');
+        if (r === 'tv') say('The TV warns: you are only safe under the glow. Do not stray too long.', 'tv');
         else startDanger('Footsteps that are not yours.');
       }
-      setTimeout(tick, 14000 + Math.random() * 12000);
-    }, 10000 + Math.random() * 8000);
+      setTimeout(tick, 12000 + Math.random() * 14000);
+    }, 9000);
   }
 
   function save() {
     try {
-      localStorage.setItem('glow3d_save', JSON.stringify({
-        inv: inv, flags: flags, hideCount: hideCount, fightCount: fightCount,
+      localStorage.setItem('glow3d_full', JSON.stringify({
+        inv: inv, flags: flags, tapesPlayed: tapesPlayed,
+        hideCount: hideCount, fightCount: fightCount,
         x: engine.px, z: engine.pz, yaw: engine.yaw
       }));
     } catch (e) {}
   }
-
   function load() {
     try {
-      var raw = localStorage.getItem('glow3d_save');
-      if (!raw) return;
-      var s = JSON.parse(raw);
+      var s = JSON.parse(localStorage.getItem('glow3d_full') || 'null');
+      if (!s) return;
       inv = s.inv || [];
-      flags = s.flags || flags;
+      flags = Object.assign(flags, s.flags || {});
+      tapesPlayed = s.tapesPlayed || {};
       hideCount = s.hideCount || 0;
       fightCount = s.fightCount || 0;
-      // remove collected tape props
       inv.forEach(function (id) {
         if (id.indexOf('tape') === 0) removeProp(function (p) { return p.tape === id; });
       });
@@ -257,15 +464,21 @@
   var engine = new CubitEngine({
     canvas: canvas,
     map: MAP,
-    x: 2.5,
-    z: 2.5,
+    x: 8.5,
+    z: 6.5,
     yaw: 0,
     props: props,
     packs: { crt: true, fog: true },
     onFrame: function (eng) {
       document.getElementById('fps').textContent = String(eng.fps);
-      document.getElementById('room').textContent = roomName(roomAt(Math.floor(eng.px), Math.floor(eng.pz)));
+      var r = roomAt(Math.floor(eng.px), Math.floor(eng.pz));
+      document.getElementById('room').textContent = (ROOMS[r] && ROOMS[r].name) || r;
+      document.getElementById('roomtitle').textContent = (ROOMS[r] && ROOMS[r].name) || r;
       document.getElementById('tapes').textContent = String(tapeCount());
+      if (r !== lastRoom) {
+        lastRoom = r;
+        if (ROOMS[r]) say(ROOMS[r].desc, 'sys');
+      }
       if (danger.active) {
         var left = Math.max(0, (danger.until - performance.now()) / 1000);
         document.getElementById('dtimer').textContent = ' · DANGER ' + left.toFixed(1) + 's';
@@ -275,12 +488,10 @@
   });
   engine.bindPad(document.getElementById('pad'));
 
-  // Room-tinted walls
+  // Polygon walls tinted by room + box props
   engine.drawWall = function (x, z) {
-    var col = [42, 52, 72];
-    if (x <= 4) col = [28, 48, 95];
-    else if (x >= 12) col = [58, 48, 40];
-    else col = [40, 34, 52];
+    var r = roomAt(x, z);
+    var col = (ROOMS[r] && ROOMS[r].color) || [42, 52, 72];
     var g = this.g, h = 1.15;
     var v = [
       [x, 0, z], [x + 1, 0, z], [x + 1, 0, z + 1], [x, 0, z + 1],
@@ -297,59 +508,104 @@
       g.moveTo(pts[0].x, pts[0].y);
       for (var k = 1; k < pts.length; k++) g.lineTo(pts[k].x, pts[k].y);
       g.closePath();
-      var shade = 0.45 + (item.i % 4) * 0.1;
+      var shade = 0.42 + (item.i % 4) * 0.1;
       g.fillStyle = 'rgb(' + Math.floor(col[0] * shade) + ',' + Math.floor(col[1] * shade) + ',' + Math.floor(col[2] * shade) + ')';
       g.fill();
     });
   };
 
+  var baseDrawProp = engine.drawProp.bind(engine);
+  engine.drawProp = function (prop) {
+    if (prop.kind === 'box') {
+      var w = prop.w || 0.6, h = prop.h || 0.6;
+      var x = prop.x + 0.5 - w / 2, z = prop.z + 0.5 - w / 2;
+      // simple 2-face box illusion
+      var corners = [
+        [x, 0, z], [x + w, 0, z], [x + w, 0, z + w], [x, 0, z + w],
+        [x, h, z], [x + w, h, z], [x + w, h, z + w], [x, h, z + w]
+      ].map(function (p) { return engine.project(p[0], p[1], p[2]); });
+      var faces = [[0,1,5,4],[1,2,6,5],[4,5,6,7]];
+      var g = engine.g;
+      faces.forEach(function (f, i) {
+        var pts = f.map(function (j) { return corners[j]; });
+        if (pts.some(function (p) { return !p; })) return;
+        g.beginPath();
+        g.moveTo(pts[0].x, pts[0].y);
+        for (var k = 1; k < pts.length; k++) g.lineTo(pts[k].x, pts[k].y);
+        g.closePath();
+        g.fillStyle = prop.color || '#668';
+        g.globalAlpha = 0.55 + i * 0.1;
+        g.fill();
+        g.globalAlpha = 1;
+      });
+      var top = engine.project(prop.x + 0.5, h + 0.05, prop.z + 0.5);
+      if (top && prop.label) {
+        g.fillStyle = '#e8ecf4';
+        g.font = '9px monospace';
+        g.fillText(prop.label, top.x - 12, top.y);
+      }
+      return;
+    }
+    baseDrawProp(prop);
+  };
+
   document.getElementById('btnLook').onclick = function () {
     if (dead) return;
+    ensureAudio();
     var r = roomAt(Math.floor(engine.px), Math.floor(engine.pz));
-    if (r === 'tv') {
-      say('The TV is a cold mouth of snow. Stay under the glow when you can.', 'tv');
-      if (!flags.remote) say('A remote waits on the carpet.', 'sys');
-    } else if (r === 'hall') {
-      say('The hall is longer than the house. Something tracks the length.');
-    } else if (r === 'kitchen') {
-      say('Fridge light is a bar of pale judgment.');
-      if (!flags.note) say('A note sticks where a magnet should be.', 'sys');
-    } else {
-      say('The lower strip smells like wet coats that are not yours.');
-    }
-    if (near('watcher')) say('A wrong-faced neighbor watches from the corner.', 'npc');
+    if (ROOMS[r]) say(ROOMS[r].desc);
+    var n = near('npc');
+    if (n && NPCS[n.npc]) say(NPCS[n.npc].look, 'npc');
     if (near('tape')) say('A cassette lies like a black tooth.', 'sys');
+    if (near('tv')) say('Under the glow the carpet is wrong-colored.', 'tv');
+    if (near('mirror')) say('Fog is already mid-sentence.', 'sys');
+    if (near('fridge')) say('The fridge is a white upright coffin for leftovers and light.');
+    if (near('washer') || near('dryer')) say('Machines sleep mid-cycle.');
   };
 
   document.getElementById('btnTake').onclick = function () {
     if (dead) return;
+    ensureAudio();
     var t = near('tape');
     if (t && t.tape && inv.indexOf(t.tape) < 0) {
       inv.push(t.tape);
       removeProp(function (p) { return p === t; });
       say('Taken: ' + TAPES[t.tape].title, 'ok');
-      document.getElementById('tapes').textContent = String(tapeCount());
       save();
       return;
     }
     if (near('remote') && !flags.remote) {
-      flags.remote = true;
-      inv.push('remote');
+      flags.remote = true; inv.push('remote');
       removeProp(function (p) { return p.type === 'remote'; });
-      say('Remote acquired. Buttons like teeth.', 'ok');
+      say('Remote acquired. Buttons feel like teeth.', 'ok');
       save();
       return;
     }
     if (near('note') && !flags.note) {
-      flags.note = true;
-      inv.push('note');
+      flags.note = true; inv.push('note');
       removeProp(function (p) { return p.type === 'note'; });
       say('NOTE: STAY UNDER THE GLOW. THE HALL FORGETS YOU.', 'ok');
       save();
       return;
     }
-    if (near('fridge')) { say('Nothing you want is food.'); return; }
-    say('Nothing to take.', 'sys');
+    say('Nothing to take here.', 'sys');
+  };
+
+  document.getElementById('btnTalk').onclick = function () {
+    if (dead) return;
+    var n = near('npc');
+    if (n && NPCS[n.npc]) {
+      say(NPCS[n.npc].talk, 'npc');
+      if (n.npc === 'watcher') flags.marked = true;
+      if (n.npc === 'sitter') flags.seen = true;
+      save();
+      return;
+    }
+    if (roomAt(Math.floor(engine.px), Math.floor(engine.pz)) === 'tv') {
+      say('The glow answers in snow, then in orders.', 'tv');
+      return;
+    }
+    say('Your voice does not come home.', 'sys');
   };
 
   document.getElementById('btnPlay').onclick = function () {
@@ -358,15 +614,14 @@
       say('Tapes only speak under the glow.', 'tv');
       return;
     }
-    var tapeId = inv.filter(function (i) { return i.indexOf('tape') === 0; })[0];
-    if (!tapeId) { say('No tapes in inventory.', 'sys'); return; }
-    // play first unplayed preference: cycle
-    var next = inv.find(function (i) { return TAPES[i]; });
-    if (!next) return;
-    say('VCR accepts ' + TAPES[next].title + '.', 'tv');
-    say(TAPES[next].lore, 'npc');
-    flags.watched = true;
-    // remove one tape after play? keep for lore — mark played list
+    var list = inv.filter(function (i) { return TAPES[i]; });
+    if (!list.length) { say('No tapes.', 'sys'); return; }
+    // play next unplayed else first
+    var id = list.find(function (i) { return !tapesPlayed[i]; }) || list[0];
+    var tape = TAPES[id];
+    say('VCR accepts ' + tape.title + '.', 'tv');
+    tape.lines.forEach(function (line) { say(line, 'npc'); });
+    tapesPlayed[id] = true;
     save();
   };
 
@@ -374,45 +629,35 @@
     if (!danger.active || dead) return;
     hideCount++;
     endDanger();
-    say('You fold into a corner. The footsteps pass like a bad station.', 'ok');
+    say('You fold into a corner. Footsteps pass like a bad station.', 'ok');
     save();
   };
   document.getElementById('btnFlee').onclick = function () {
     if (!danger.active || dead) return;
     endDanger();
-    // shove toward TV
-    engine.px = 2.5; engine.pz = 2.5; engine.yaw = 0;
-    say('You run under the glow. Safe—for a measure.', 'tv');
+    engine.px = 8.5; engine.pz = 6.5; engine.yaw = 0;
+    say('You run under the glow.', 'tv');
     save();
   };
   document.getElementById('btnFight').onclick = function () {
     if (!danger.active || dead) return;
     fightCount++;
-    if (Math.random() < 0.45) {
+    if (Math.random() < 0.42) {
       endDanger();
       say('You strike static. It forgets you for now.', 'ok');
-    } else {
-      die('Fighting the house is a short career.');
-    }
+    } else die('Fighting the house is a short career.');
     save();
   };
 
+  document.getElementById('btnAudio').onclick = ensureAudio;
   document.getElementById('btnRespawn').onclick = respawn;
-  document.getElementById('btnConsole').onclick = function () {
-    location.href = '../../index.html';
-  };
+  document.getElementById('btnConsole').onclick = function () { location.href = '../../index.html'; };
 
   load();
-  say('Under the Glow 3D — Phase 4. Tapes, danger, death under the glow.', 'sys');
-  say('Collect 3 tapes. Play them at the TV. Survive the house.', 'sys');
+  say('Under the Glow — full house on Cubit engine.', 'sys');
+  say('All classic rooms. Tapes. NPCs. Danger music. Stay under the glow.', 'sys');
   engine.start();
   scheduleDanger();
-
-  try {
-    localStorage.setItem('cubit_play_session', JSON.stringify({
-      schema: 1, game: 'glow3d', phase: 4, ts: Date.now()
-    }));
-  } catch (e) {}
 })();
   </script>
 </body>

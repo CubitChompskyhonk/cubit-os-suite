@@ -7,11 +7,11 @@
     {
       "id": "glow3d",
       "title": "Under the Glow 3D",
-      "version": "0.1.0-phase3",
+      "version": "0.4.0-phase4",
       "path": "games/glow3d/index.html",
       "profile": "n64-class",
       "publisher": "Cubit Games",
-      "description": "TV \u00b7 hall \u00b7 kitchen on Prism engine"
+      "description": "Tapes \u00b7 danger \u00b7 death/respawn \u00b7 TV/hall/kitchen"
     },
     {
       "id": "maze",

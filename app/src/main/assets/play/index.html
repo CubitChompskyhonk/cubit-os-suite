@@ -46,6 +46,7 @@
   </div>
 
   <div class="row">
+    <button type="button" class="primary" id="btnPrism">Play Project Prism</button>
     <button type="button" class="primary" id="btnGlow">Play Under the Glow</button>
     <button type="button" onclick="document.body.classList.toggle('crt')">CRT</button>
     <button type="button" onclick="goOs()">OS Home</button>
@@ -57,6 +58,7 @@
 
   <script>
     const GLOW = 'games/under-the-glow/index.html?access=founder&play=1&console=cubit';
+    const PRISM = 'games/prism/index.html';
 
     function log(m) {
       document.getElementById('log').textContent += m + '\n';
@@ -85,6 +87,20 @@
     }
 
     document.getElementById('btnGlow').onclick = launchGlow;
+    document.getElementById('btnPrism').onclick = function () {
+      log('Launching Project Prism…');
+      try {
+        if (window.CubitOS && window.CubitOS.openGame) { window.CubitOS.openGame('prism'); return; }
+      } catch (e) {}
+      location.href = PRISM;
+    };
+    // catalog start buttons
+    window.launchGame = function(id) {
+      if (id === 'prism') {
+        try { if (window.CubitOS && window.CubitOS.openGame) { window.CubitOS.openGame('prism'); return; } } catch(e) {}
+        location.href = PRISM;
+      } else launchGlow();
+    };
 
     async function loadCatalog() {
       try {
@@ -95,11 +111,11 @@
             <div class="tag">${(g.profile || '').toUpperCase()} · ${g.publisher || 'CUBIT'}</div>
             <h2>${g.title}</h2>
             <p>${g.description || ''}</p>
-            <button type="button" class="primary" onclick="launchGlow()">Start</button>
+            <button type="button" class="primary" onclick="launchGame('${g.id}')">Start</button>
           </div>`).join('');
       } catch (e) {
         log('catalog: ' + e);
-        document.getElementById('catalog').innerHTML = '<div class="game"><h2>Under the Glow</h2><button type="button" class="primary" onclick="launchGlow()">Start</button></div>';
+        document.getElementById('catalog').innerHTML = '<div class="game"><h2>Under the Glow</h2><button type="button" class="primary" onclick="launchGame('${g.id}')">Start</button></div>';
       }
     }
     loadCatalog();

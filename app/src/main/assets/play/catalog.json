@@ -5,6 +5,15 @@
   "engine": "cubit-engine",
   "games": [
     {
+      "id": "tank-wars",
+      "title": "Tank Wars",
+      "version": "1.0.0",
+      "path": "games/tank-wars/index.html",
+      "profile": "n64-class",
+      "publisher": "Cubit Play",
+      "description": "Arcade tank battle \u00b7 projectiles \u00b7 waves"
+    },
+    {
       "id": "glow3d",
       "title": "Under the Glow",
       "version": "1.0.0",

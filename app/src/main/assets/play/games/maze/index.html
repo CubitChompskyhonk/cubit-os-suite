@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Cubit Maze</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #05060a; color: #d8dde8; font-family: ui-monospace, monospace; overflow: hidden; height: 100dvh; }
+    #wrap { position: relative; width: 100%; height: 100%; }
+    canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; touch-action: none; }
+    #hud {
+      position: absolute; left: 0; right: 0; top: 0; padding: 8px 10px; z-index: 5;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+      font-size: 11px; pointer-events: none;
+    }
+    #hud b { color: #3dd68c; }
+    #win {
+      display: none; position: absolute; inset: 0; z-index: 10;
+      background: rgba(5,8,14,0.88); align-items: center; justify-content: center; flex-direction: column; gap: 12px;
+    }
+    #win.show { display: flex; }
+    #win h1 { color: #c9a227; font-size: 1.4rem; }
+    #win button, #bar button {
+      font: 700 13px system-ui; padding: 12px 16px; border-radius: 10px;
+      border: 1px solid #5a4a20; background: #1a1810; color: #f0e6c8;
+    }
+    #bar {
+      position: absolute; left: 0; right: 0; bottom: 0; z-index: 6;
+      padding: 10px; display: flex; gap: 8px; flex-wrap: wrap;
+      background: rgba(8,10,16,0.92); border-top: 1px solid #2a3142;
+    }
+    #pad {
+      position: absolute; right: 12px; bottom: 64px; z-index: 6;
+      display: grid; grid-template-columns: 48px 48px 48px; gap: 4px;
+    }
+    #pad button {
+      width: 48px; height: 48px; border-radius: 10px; border: 1px solid #2a3142;
+      background: rgba(20,26,36,0.9); color: #eef1f6; font-size: 16px;
+    }
+    #pad .sp { visibility: hidden; }
+  </style>
+</head>
+<body>
+  <div id="wrap">
+    <canvas id="c"></canvas>
+    <div id="hud"><b>CUBIT MAZE</b> · WASD / pad · look drag · find the gold exit · <span id="fps">--</span> fps</div>
+    <div id="pad">
+      <span class="sp"></span>
+      <button type="button" data-k="w">▲</button>
+      <span class="sp"></span>
+      <button type="button" data-k="a">◀</button>
+      <button type="button" data-k="s">▼</button>
+      <button type="button" data-k="d">▶</button>
+    </div>
+    <div id="bar">
+      <button type="button" id="btnRestart">Restart</button>
+      <button type="button" id="btnConsole">Console</button>
+    </div>
+    <div id="win">
+      <h1>Exit found</h1>
+      <p style="color:#8b93a7;font-size:13px">You cleared the maze.</p>
+      <button type="button" id="btnAgain">Play again</button>
+      <button type="button" id="btnBack">Console</button>
+    </div>
+  </div>
+  <script>
+(function () {
+  // 1 = wall, 0 = path, 2 = start, 3 = exit
+  const MAP = [
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,2,0,0,1,0,0,0,0,0,1,0,0,0,1],
+    [1,1,1,0,1,0,1,1,1,0,1,0,1,0,1],
+    [1,0,0,0,0,0,1,0,0,0,0,0,1,0,1],
+    [1,0,1,1,1,1,1,0,1,1,1,1,1,0,1],
+    [1,0,0,0,0,0,0,0,1,0,0,0,0,0,1],
+    [1,1,1,1,1,1,1,0,1,0,1,1,1,1,1],
+    [1,0,0,0,0,0,1,0,0,0,1,0,0,0,1],
+    [1,0,1,1,1,0,1,1,1,1,1,0,1,0,1],
+    [1,0,0,0,1,0,0,0,0,0,0,0,1,0,1],
+    [1,1,1,0,1,1,1,1,1,1,1,0,1,0,1],
+    [1,0,0,0,0,0,0,0,0,0,1,0,0,0,1],
+    [1,0,1,1,1,1,1,1,1,0,1,1,1,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,3,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+  ];
+  const ROWS = MAP.length, COLS = MAP[0].length;
+  const CELL = 1.0;
+
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d', { alpha: false });
+  const IW = 320, IH = 240;
+  const off = document.createElement('canvas');
+  off.width = IW; off.height = IH;
+  const g = off.getContext('2d', { alpha: false });
+
+  let px = 1.5, pz = 1.5, yaw = 0;
+  let keys = {};
+  let won = false;
+  let last = performance.now();
+  let frames = 0, fpsT = 0;
+
+  function findCell(v) {
+    for (let z = 0; z < ROWS; z++)
+      for (let x = 0; x < COLS; x++)
+        if (MAP[z][x] === v) return { x: x + 0.5, z: z + 0.5 };
+    return { x: 1.5, z: 1.5 };
+  }
+  function reset() {
+    const s = findCell(2);
+    px = s.x; pz = s.z; yaw = 0;
+    won = false;
+    document.getElementById('win').classList.remove('show');
+  }
+  reset();
+
+  function solid(x, z) {
+    const cx = Math.floor(x), cz = Math.floor(z);
+    if (cz < 0 || cx < 0 || cz >= ROWS || cx >= COLS) return true;
+    return MAP[cz][cx] === 1;
+  }
+
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.floor(canvas.clientWidth * dpr);
+    canvas.height = Math.floor(canvas.clientHeight * dpr);
+  }
+  window.addEventListener('resize', resize);
+  setTimeout(resize, 30);
+
+  // look
+  let drag = false, lx = 0, ly = 0;
+  canvas.addEventListener('pointerdown', e => {
+    drag = true; lx = e.clientX; ly = e.clientY;
+    try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+  });
+  canvas.addEventListener('pointerup', () => { drag = false; });
+  canvas.addEventListener('pointermove', e => {
+    if (!drag || won) return;
+    yaw += (e.clientX - lx) * 0.006;
+    lx = e.clientX; ly = e.clientY;
+  });
+
+  window.addEventListener('keydown', e => {
+    keys[e.key.toLowerCase()] = true;
+    if (['arrowup','arrowdown','arrowleft','arrowright',' '].includes(e.key.toLowerCase())) e.preventDefault();
+  });
+  window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+
+  // on-screen pad
+  document.querySelectorAll('#pad button').forEach(btn => {
+    const k = btn.getAttribute('data-k');
+    const down = e => { e.preventDefault(); keys[k] = true; };
+    const up = e => { e.preventDefault(); keys[k] = false; };
+    btn.addEventListener('pointerdown', down);
+    btn.addEventListener('pointerup', up);
+    btn.addEventListener('pointerleave', up);
+    btn.addEventListener('pointercancel', up);
+  });
+
+  document.getElementById('btnRestart').onclick = reset;
+  document.getElementById('btnAgain').onclick = reset;
+  document.getElementById('btnConsole').onclick = () => { location.href = '../../index.html'; };
+  document.getElementById('btnBack').onclick = () => { location.href = '../../index.html'; };
+
+  function tryMove(nx, nz) {
+    const r = 0.18;
+    if (!solid(nx - r, pz - r) && !solid(nx + r, pz - r) && !solid(nx - r, pz + r) && !solid(nx + r, pz + r))
+      px = nx;
+    if (!solid(px - r, nz - r) && !solid(px + r, nz - r) && !solid(px - r, nz + r) && !solid(px + r, nz + r))
+      pz = nz;
+    const cx = Math.floor(px), cz = Math.floor(pz);
+    if (MAP[cz] && MAP[cz][cx] === 3) {
+      won = true;
+      document.getElementById('win').classList.add('show');
+    }
+  }
+
+  function project(x, y, z) {
+    let cx = x - px, cy = y - 0.5, cz = z - pz;
+    const cosy = Math.cos(yaw), siny = Math.sin(yaw);
+    const rx = cx * cosy - cz * siny;
+    let rz = cx * siny + cz * cosy;
+    if (rz < 0.12) return null;
+    const f = 160 / rz;
+    return { x: IW / 2 + rx * f, y: IH / 2 - cy * f, z: rz };
+  }
+
+  function drawWall(x, z) {
+    const h = 1.2;
+    const v = [
+      [x, 0, z], [x + 1, 0, z], [x + 1, 0, z + 1], [x, 0, z + 1],
+      [x, h, z], [x + 1, h, z], [x + 1, h, z + 1], [x, h, z + 1]
+    ].map(p => project(p[0], p[1], p[2]));
+    const faces = [[0,1,5,4],[1,2,6,5],[2,3,7,6],[3,0,4,7]];
+    const scored = faces.map((f, i) => {
+      const zs = f.map(j => v[j] && v[j].z).filter(Boolean);
+      return { f, z: zs.length ? zs.reduce((a, b) => a + b, 0) / zs.length : 0, i };
+    }).sort((a, b) => b.z - a.z);
+    scored.forEach(({ f, i }) => {
+      const pts = f.map(j => v[j]);
+      if (pts.some(p => !p)) return;
+      g.beginPath();
+      g.moveTo(pts[0].x, pts[0].y);
+      for (let k = 1; k < pts.length; k++) g.lineTo(pts[k].x, pts[k].y);
+      g.closePath();
+      const shade = 0.35 + (i % 4) * 0.08;
+      g.fillStyle = 'rgb(' + Math.floor(40 + shade * 80) + ',' + Math.floor(48 + shade * 70) + ',' + Math.floor(70 + shade * 90) + ')';
+      g.fill();
+    });
+  }
+
+  function drawExit(x, z) {
+    const p = project(x + 0.5, 0.4, z + 0.5);
+    if (!p) return;
+    g.fillStyle = '#c9a227';
+    g.beginPath();
+    g.arc(p.x, p.y, Math.max(3, 40 / p.z), 0, Math.PI * 2);
+    g.fill();
+  }
+
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    frames++; fpsT += dt;
+    if (fpsT >= 0.4) {
+      document.getElementById('fps').textContent = String(Math.round(frames / fpsT));
+      frames = 0; fpsT = 0;
+    }
+
+    if (!won) {
+      const sp = 2.4 * dt;
+      const cosy = Math.cos(yaw), siny = Math.sin(yaw);
+      let mx = 0, mz = 0;
+      if (keys['w'] || keys['arrowup']) { mx += siny; mz += cosy; }
+      if (keys['s'] || keys['arrowdown']) { mx -= siny; mz -= cosy; }
+      if (keys['a'] || keys['arrowleft']) { mx -= cosy; mz += siny; }
+      if (keys['d'] || keys['arrowright']) { mx += cosy; mz -= siny; }
+      if (keys['q']) yaw -= 1.8 * dt;
+      if (keys['e']) yaw += 1.8 * dt;
+      const len = Math.hypot(mx, mz);
+      if (len > 0) tryMove(px + (mx / len) * sp, pz + (mz / len) * sp);
+    }
+
+    // sky + floor
+    g.fillStyle = '#0a0e18';
+    g.fillRect(0, 0, IW, IH / 2);
+    g.fillStyle = '#121820';
+    g.fillRect(0, IH / 2, IW, IH / 2);
+
+    // collect walls by distance
+    const walls = [];
+    for (let z = 0; z < ROWS; z++) {
+      for (let x = 0; x < COLS; x++) {
+        if (MAP[z][x] !== 1) continue;
+        const dx = x + 0.5 - px, dz = z + 0.5 - pz;
+        walls.push({ x, z, d: dx * dx + dz * dz });
+      }
+    }
+    walls.sort((a, b) => b.d - a.d);
+    walls.forEach(w => drawWall(w.x, w.z));
+
+    const ex = findCell(3);
+    drawExit(Math.floor(ex.x), Math.floor(ex.z));
+
+    // minimap
+    const ms = 4;
+    g.fillStyle = 'rgba(0,0,0,0.55)';
+    g.fillRect(IW - COLS * ms - 8, 8, COLS * ms + 4, ROWS * ms + 4);
+    for (let z = 0; z < ROWS; z++) {
+      for (let x = 0; x < COLS; x++) {
+        const v = MAP[z][x];
+        g.fillStyle = v === 1 ? '#3a4558' : v === 3 ? '#c9a227' : '#1a2435';
+        g.fillRect(IW - COLS * ms - 6 + x * ms, 10 + z * ms, ms - 1, ms - 1);
+      }
+    }
+    g.fillStyle = '#3dd68c';
+    g.fillRect(IW - COLS * ms - 6 + px * ms - 1, 10 + pz * ms - 1, 3, 3);
+
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(off, 0, 0, canvas.width, canvas.height);
+
+    // CRT-ish
+    ctx.fillStyle = 'rgba(0,0,0,0.1)';
+    for (let y = 0; y < canvas.height; y += 3) ctx.fillRect(0, y, canvas.width, 1);
+
+    requestAnimationFrame(frame);
+  }
+
+  try {
+    localStorage.setItem('cubit_play_session', JSON.stringify({
+      schema: 1, game: 'maze', profile: 'n64-class', ts: Date.now()
+    }));
+  } catch (e) {}
+
+  requestAnimationFrame(frame);
+})();
+  </script>
+</body>
+</html>

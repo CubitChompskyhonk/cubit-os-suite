@@ -8,48 +8,70 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: #07060b; color: #e4dcd2; font-family: Georgia, serif; overflow: hidden; height: 100dvh; }
     #wrap { position: relative; width: 100%; height: 100%; }
-    canvas { display: block; width: 100%; height: 70%; touch-action: none; image-rendering: pixelated; }
+    canvas { display: block; width: 100%; height: 58%; touch-action: none; image-rendering: pixelated; }
     #log {
-      height: 30%; overflow-y: auto; padding: 8px 12px; background: #0c0a10;
-      border-top: 1px solid #1e1a28; font-size: 13px; line-height: 1.45;
+      height: 27%; overflow-y: auto; padding: 8px 12px; background: #0c0a10;
+      border-top: 1px solid #1e1a28; font-size: 13px; line-height: 1.4;
     }
-    #log p { margin-bottom: 6px; }
+    #log p { margin-bottom: 5px; }
     #log .sys { color: #6e6878; font-family: ui-monospace, monospace; font-size: 11px; }
     #log .ok { color: #7a9e82; }
     #log .bad { color: #d06070; }
     #log .tv { color: #7ec8ff; }
+    #log .npc { color: #c9a227; }
     #hud {
       position: absolute; left: 0; right: 0; top: 0; padding: 6px 10px;
       font: 10px ui-monospace, monospace; color: #6e6878; pointer-events: none;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.75), transparent);
+      background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); z-index: 4;
     }
     #hud b { color: #9b8cff; }
+    #danger {
+      display: none; position: absolute; left: 0; right: 0; top: 0; bottom: 42%;
+      background: rgba(80,0,20,0.25); pointer-events: none; z-index: 3;
+    }
+    #danger.on { display: block; animation: pulse 0.4s steps(2, end) infinite; }
+    @keyframes pulse { 50% { background: rgba(120,0,30,0.4); } }
     #pad {
-      position: absolute; right: 10px; top: 45%; transform: translateY(-50%);
-      display: grid; grid-template-columns: 44px 44px 44px; gap: 4px; z-index: 5;
+      position: absolute; right: 8px; top: 38%; z-index: 5;
+      display: grid; grid-template-columns: 42px 42px 42px; gap: 3px;
     }
     #pad button {
-      width: 44px; height: 44px; border-radius: 8px; border: 1px solid #2a2435;
-      background: rgba(20,16,28,0.9); color: #e4dcd2; font-size: 14px;
+      width: 42px; height: 42px; border-radius: 8px; border: 1px solid #2a2435;
+      background: rgba(20,16,28,0.92); color: #e4dcd2; font-size: 13px;
     }
     #pad .sp { visibility: hidden; }
-    #bar {
-      position: absolute; left: 8px; top: 28px; z-index: 5; display: flex; gap: 6px; flex-wrap: wrap;
+    #actions {
+      height: 15%; padding: 6px 8px; background: #100e16; border-top: 1px solid #1e1a28;
+      display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start;
     }
-    #bar button {
-      font: 600 11px system-ui; padding: 6px 10px; border-radius: 8px;
+    #actions button {
+      font: 600 12px system-ui; padding: 8px 10px; border-radius: 8px;
       border: 1px solid #2a2435; background: #14101c; color: #e4dcd2;
+    }
+    #actions button.warn { border-color: #803040; color: #f0c0c8; }
+    #actions button.tv { border-color: #3a6080; color: #b8d8ff; }
+    #death {
+      display: none; position: absolute; inset: 0; z-index: 20;
+      background: #050308; color: #d06070; flex-direction: column;
+      align-items: center; justify-content: center; gap: 12px; text-align: center; padding: 20px;
+    }
+    #death.show { display: flex; }
+    #death h1 { font-size: 1.3rem; letter-spacing: 0.1em; }
+    #death button {
+      font: 700 13px system-ui; padding: 12px 18px; border-radius: 10px;
+      border: 1px solid #5a3040; background: #1a1018; color: #e4dcd2;
     }
   </style>
 </head>
 <body>
   <div id="wrap">
-    <div id="hud"><b>UNDER THE GLOW 3D</b> · Phase 3 · W/S walk · A/D turn · <span id="fps">--</span> fps · <span id="room">—</span></div>
-    <div id="bar">
-      <button type="button" id="btnLook">Look</button>
-      <button type="button" id="btnTake">Take</button>
-      <button type="button" id="btnConsole">Console</button>
+    <div id="hud">
+      <b>UNDER THE GLOW 3D</b> · Phase 4 ·
+      <span id="room">—</span> · tapes <span id="tapes">0</span> ·
+      <span id="fps">--</span> fps
+      <span id="dtimer"></span>
     </div>
+    <div id="danger"></div>
     <canvas id="c"></canvas>
     <div id="pad">
       <span class="sp"></span>
@@ -60,23 +82,61 @@
       <button type="button" data-k="d">↻</button>
     </div>
     <div id="log"></div>
+    <div id="actions">
+      <button type="button" id="btnLook">Look</button>
+      <button type="button" id="btnTake">Take</button>
+      <button type="button" id="btnPlay" class="tv">Play tape at TV</button>
+      <button type="button" id="btnHide" class="warn">Hide</button>
+      <button type="button" id="btnFlee" class="warn">Flee</button>
+      <button type="button" id="btnFight" class="warn">Fight</button>
+      <button type="button" id="btnConsole">Console</button>
+    </div>
+    <div id="death">
+      <h1>STATIC</h1>
+      <p style="color:#8a8090;max-width:280px;font-size:14px" id="deathReason">The house takes a small trophy.</p>
+      <button type="button" id="btnRespawn">Wake under the glow</button>
+    </div>
   </div>
   <script src="../../engine/cubit-engine.js"></script>
   <script>
 (function () {
-  // Map legend: 1 wall, 0 floor, 2 start (TV room), 4 hall marker, 5 kitchen marker
-  // Layout: TV (left) — hall — kitchen (right)
+  // 1 wall · 0 floor · start in TV
+  // Rooms by x: TV x<=4 · HALL 5-10 · KITCHEN 11+ · BED  via south spur · YARD north open
   var MAP = [
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,1],
-    [1,0,2,0,0,1,0,0,0,0,0,1,0,0,5,0,1],
-    [1,0,0,0,0,0,0,0,4,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,1],
+    [1,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,1],
+    [1,1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+  ];
+
+  var TAPES = {
+    'tape-a': { id: 'tape-a', title: 'TAPE A — TV', lore: 'The glow keeps a ledger. Names are checked twice.' },
+    'tape-b': { id: 'tape-b', title: 'TAPE B — HALL', lore: 'The wallpaper maps exits that move when unobserved.' },
+    'tape-c': { id: 'tape-c', title: 'TAPE C — KITCHEN', lore: 'EAT ME / DO NOT. The fridge is a white upright coffin.' }
+  };
+
+  var props = [
+    { x: 2, z: 2, type: 'tv', label: 'TV', color: '#7ec8ff', r: 40 },
+    { x: 1, z: 1, type: 'tape', tape: 'tape-a', label: 'tape', color: '#c07080', r: 18 },
+    { x: 3, z: 4, type: 'remote', label: 'remote', color: '#9b8cff', r: 16 },
+    { x: 8, z: 3, type: 'tape', tape: 'tape-b', label: 'tape', color: '#c07080', r: 18 },
+    { x: 9, z: 1, type: 'door', label: '', color: '#4a4060', r: 14 },
+    { x: 14, z: 2, type: 'fridge', label: 'fridge', color: '#a8b0c0', r: 28 },
+    { x: 15, z: 1, type: 'tape', tape: 'tape-c', label: 'tape', color: '#c07080', r: 18 },
+    { x: 13, z: 4, type: 'note', label: 'note', color: '#c9a227', r: 16 },
+    { x: 16, z: 3, type: 'watcher', label: '?', color: '#604050', r: 22 }
   ];
 
   var inv = [];
-  var flags = { seenTv: false, tookRemote: false, kitchenNote: false };
+  var flags = { remote: false, note: false, watched: false };
+  var hideCount = 0, fightCount = 0;
+  var danger = { active: false, until: 0, windowLeft: 0 };
+  var dead = false;
   var logEl = document.getElementById('log');
 
   function say(msg, cls) {
@@ -88,23 +148,110 @@
   }
 
   function roomAt(x, z) {
-    // partitions by wall columns x=5 and x=11
-    if (x < 5) return 'tv';
-    if (x > 11) return 'kitchen';
+    if (z >= 6) return 'basement-ish';
+    if (x <= 4) return 'tv';
+    if (x >= 12) return 'kitchen';
     return 'hall';
   }
-
-  function roomName(id) {
-    return { tv: 'TV ROOM', hall: 'HALL', kitchen: 'KITCHEN' }[id] || id;
+  function roomName(r) {
+    return ({ tv: 'TV ROOM', hall: 'HALL', kitchen: 'KITCHEN', 'basement-ish': 'LOWER' })[r] || r;
   }
 
-  var props = [
-    { x: 2, z: 2, type: 'tv', label: 'TV', color: '#7ec8ff', r: 36 },
-    { x: 3, z: 1, type: 'remote', label: 'remote', color: '#9b8cff', r: 22 },
-    { x: 8, z: 3, type: 'door', label: '', color: '#4a4060', r: 18 },
-    { x: 14, z: 2, type: 'fridge', label: 'fridge', color: '#a8b0c0', r: 30 },
-    { x: 13, z: 1, type: 'note', label: 'note', color: '#c9a227', r: 20 }
-  ];
+  function tapeCount() {
+    return inv.filter(function (i) { return i.indexOf('tape') === 0; }).length;
+  }
+
+  function near(type, dist) {
+    dist = dist || 1.35;
+    for (var i = 0; i < props.length; i++) {
+      var pr = props[i];
+      if (type && pr.type !== type) continue;
+      var dx = pr.x + 0.5 - engine.px, dz = pr.z + 0.5 - engine.pz;
+      if (dx * dx + dz * dz < dist * dist) return pr;
+    }
+    return null;
+  }
+
+  function removeProp(pred) {
+    props = props.filter(function (p) { return !pred(p); });
+    engine.props = props;
+  }
+
+  function startDanger(reason) {
+    if (dead || danger.active) return;
+    danger.active = true;
+    danger.until = performance.now() + 6000;
+    danger.timeLeft = 6;
+    document.getElementById('danger').classList.add('on');
+    say(reason || 'Something enters the room-shape. Choose: Hide · Flee · Fight.', 'bad');
+  }
+
+  function endDanger() {
+    danger.active = false;
+    document.getElementById('danger').classList.remove('on');
+    document.getElementById('dtimer').textContent = '';
+  }
+
+  function die(reason) {
+    dead = true;
+    endDanger();
+    engine.running = false;
+    document.getElementById('deathReason').textContent = reason || 'The house takes a small trophy.';
+    document.getElementById('death').classList.add('show');
+    say(reason, 'bad');
+    save();
+  }
+
+  function respawn() {
+    dead = false;
+    document.getElementById('death').classList.remove('show');
+    engine.px = 2.5;
+    engine.pz = 2.5;
+    engine.yaw = 0;
+    engine.running = true;
+    say('You wake under the glow. Status kept.', 'tv');
+    scheduleDanger();
+  }
+
+  function scheduleDanger() {
+    setTimeout(function tick() {
+      if (dead) return;
+      if (!danger.active && Math.random() < 0.55) {
+        var r = roomAt(Math.floor(engine.px), Math.floor(engine.pz));
+        if (r === 'tv') say('The glow warns: do not stray too long.', 'tv');
+        else startDanger('Footsteps that are not yours.');
+      }
+      setTimeout(tick, 14000 + Math.random() * 12000);
+    }, 10000 + Math.random() * 8000);
+  }
+
+  function save() {
+    try {
+      localStorage.setItem('glow3d_save', JSON.stringify({
+        inv: inv, flags: flags, hideCount: hideCount, fightCount: fightCount,
+        x: engine.px, z: engine.pz, yaw: engine.yaw
+      }));
+    } catch (e) {}
+  }
+
+  function load() {
+    try {
+      var raw = localStorage.getItem('glow3d_save');
+      if (!raw) return;
+      var s = JSON.parse(raw);
+      inv = s.inv || [];
+      flags = s.flags || flags;
+      hideCount = s.hideCount || 0;
+      fightCount = s.fightCount || 0;
+      // remove collected tape props
+      inv.forEach(function (id) {
+        if (id.indexOf('tape') === 0) removeProp(function (p) { return p.tape === id; });
+      });
+      if (flags.remote) removeProp(function (p) { return p.type === 'remote'; });
+      if (flags.note) removeProp(function (p) { return p.type === 'note'; });
+      if (typeof s.x === 'number') { engine.px = s.x; engine.pz = s.z; engine.yaw = s.yaw || 0; }
+    } catch (e) {}
+  }
 
   var canvas = document.getElementById('c');
   var engine = new CubitEngine({
@@ -115,24 +262,26 @@
     yaw: 0,
     props: props,
     packs: { crt: true, fog: true },
-    onTrigger: function () {},
     onFrame: function (eng) {
       document.getElementById('fps').textContent = String(eng.fps);
-      var r = roomAt(Math.floor(eng.px), Math.floor(eng.pz));
-      document.getElementById('room').textContent = roomName(r);
+      document.getElementById('room').textContent = roomName(roomAt(Math.floor(eng.px), Math.floor(eng.pz)));
+      document.getElementById('tapes').textContent = String(tapeCount());
+      if (danger.active) {
+        var left = Math.max(0, (danger.until - performance.now()) / 1000);
+        document.getElementById('dtimer').textContent = ' · DANGER ' + left.toFixed(1) + 's';
+        if (left <= 0) die('You hesitated. The shape was delighted.');
+      }
     }
   });
   engine.bindPad(document.getElementById('pad'));
 
-  // Dim walls colder in TV zone via custom draw — override drawWall colors by patching after start
-  var baseDraw = engine.drawWall.bind(engine);
+  // Room-tinted walls
   engine.drawWall = function (x, z) {
     var col = [42, 52, 72];
-    if (x < 5) col = [30, 48, 90];
-    else if (x > 11) col = [55, 48, 42];
-    else col = [40, 36, 50];
-    // temporary color inject
-    var g = this.g, h = 1.2;
+    if (x <= 4) col = [28, 48, 95];
+    else if (x >= 12) col = [58, 48, 40];
+    else col = [40, 34, 52];
+    var g = this.g, h = 1.15;
     var v = [
       [x, 0, z], [x + 1, 0, z], [x + 1, 0, z + 1], [x, 0, z + 1],
       [x, h, z], [x + 1, h, z], [x + 1, h, z + 1], [x, h, z + 1]
@@ -154,70 +303,114 @@
     });
   };
 
-  function near(type, dist) {
-    dist = dist || 1.2;
-    for (var i = 0; i < props.length; i++) {
-      var pr = props[i];
-      if (pr.type !== type) continue;
-      var dx = pr.x + 0.5 - engine.px, dz = pr.z + 0.5 - engine.pz;
-      if (dx * dx + dz * dz < dist * dist) return pr;
-    }
-    return null;
-  }
-
   document.getElementById('btnLook').onclick = function () {
+    if (dead) return;
     var r = roomAt(Math.floor(engine.px), Math.floor(engine.pz));
     if (r === 'tv') {
-      flags.seenTv = true;
-      say('The TV is a cold mouth of snow. Under the glow you feel ordered to stay close.', 'tv');
-      if (!flags.tookRemote) say('Something rectangular waits on the carpet.', 'sys');
+      say('The TV is a cold mouth of snow. Stay under the glow when you can.', 'tv');
+      if (!flags.remote) say('A remote waits on the carpet.', 'sys');
     } else if (r === 'hall') {
-      say('The hall is longer than the house. Wallpaper peels in strip-maps.');
+      say('The hall is longer than the house. Something tracks the length.');
     } else if (r === 'kitchen') {
-      say('Fridge light is a bar of pale judgment. Labels argue on jars.');
-      if (!flags.kitchenNote) say('A note sticks where a magnet should be.', 'sys');
+      say('Fridge light is a bar of pale judgment.');
+      if (!flags.note) say('A note sticks where a magnet should be.', 'sys');
+    } else {
+      say('The lower strip smells like wet coats that are not yours.');
     }
+    if (near('watcher')) say('A wrong-faced neighbor watches from the corner.', 'npc');
+    if (near('tape')) say('A cassette lies like a black tooth.', 'sys');
   };
 
   document.getElementById('btnTake').onclick = function () {
-    if (near('remote') && !flags.tookRemote) {
-      flags.tookRemote = true;
+    if (dead) return;
+    var t = near('tape');
+    if (t && t.tape && inv.indexOf(t.tape) < 0) {
+      inv.push(t.tape);
+      removeProp(function (p) { return p === t; });
+      say('Taken: ' + TAPES[t.tape].title, 'ok');
+      document.getElementById('tapes').textContent = String(tapeCount());
+      save();
+      return;
+    }
+    if (near('remote') && !flags.remote) {
+      flags.remote = true;
       inv.push('remote');
-      props = props.filter(function (p) { return p.type !== 'remote'; });
-      engine.props = props;
-      say('You take the remote. Buttons feel like teeth.', 'ok');
+      removeProp(function (p) { return p.type === 'remote'; });
+      say('Remote acquired. Buttons like teeth.', 'ok');
+      save();
       return;
     }
-    if (near('note') && !flags.kitchenNote) {
-      flags.kitchenNote = true;
+    if (near('note') && !flags.note) {
+      flags.note = true;
       inv.push('note');
-      props = props.filter(function (p) { return p.type !== 'note'; });
-      engine.props = props;
+      removeProp(function (p) { return p.type === 'note'; });
       say('NOTE: STAY UNDER THE GLOW. THE HALL FORGETS YOU.', 'ok');
+      save();
       return;
     }
-    if (near('tv') && flags.tookRemote) {
-      say('Click. Static almost becomes a hallway.', 'tv');
-      return;
-    }
-    if (near('fridge')) {
-      say('The fridge opens a bar of light. Nothing you want is food.');
-      return;
-    }
-    say('Nothing to take here.', 'sys');
+    if (near('fridge')) { say('Nothing you want is food.'); return; }
+    say('Nothing to take.', 'sys');
   };
 
+  document.getElementById('btnPlay').onclick = function () {
+    if (dead) return;
+    if (roomAt(Math.floor(engine.px), Math.floor(engine.pz)) !== 'tv') {
+      say('Tapes only speak under the glow.', 'tv');
+      return;
+    }
+    var tapeId = inv.filter(function (i) { return i.indexOf('tape') === 0; })[0];
+    if (!tapeId) { say('No tapes in inventory.', 'sys'); return; }
+    // play first unplayed preference: cycle
+    var next = inv.find(function (i) { return TAPES[i]; });
+    if (!next) return;
+    say('VCR accepts ' + TAPES[next].title + '.', 'tv');
+    say(TAPES[next].lore, 'npc');
+    flags.watched = true;
+    // remove one tape after play? keep for lore — mark played list
+    save();
+  };
+
+  document.getElementById('btnHide').onclick = function () {
+    if (!danger.active || dead) return;
+    hideCount++;
+    endDanger();
+    say('You fold into a corner. The footsteps pass like a bad station.', 'ok');
+    save();
+  };
+  document.getElementById('btnFlee').onclick = function () {
+    if (!danger.active || dead) return;
+    endDanger();
+    // shove toward TV
+    engine.px = 2.5; engine.pz = 2.5; engine.yaw = 0;
+    say('You run under the glow. Safe—for a measure.', 'tv');
+    save();
+  };
+  document.getElementById('btnFight').onclick = function () {
+    if (!danger.active || dead) return;
+    fightCount++;
+    if (Math.random() < 0.45) {
+      endDanger();
+      say('You strike static. It forgets you for now.', 'ok');
+    } else {
+      die('Fighting the house is a short career.');
+    }
+    save();
+  };
+
+  document.getElementById('btnRespawn').onclick = respawn;
   document.getElementById('btnConsole').onclick = function () {
     location.href = '../../index.html';
   };
 
-  say('Under the Glow 3D — Prism engine Phase 3.', 'sys');
-  say('TV room · hall · kitchen. W/S walk, A/D turn. Look / Take.');
+  load();
+  say('Under the Glow 3D — Phase 4. Tapes, danger, death under the glow.', 'sys');
+  say('Collect 3 tapes. Play them at the TV. Survive the house.', 'sys');
   engine.start();
+  scheduleDanger();
 
   try {
     localStorage.setItem('cubit_play_session', JSON.stringify({
-      schema: 1, game: 'glow3d', engine: 'cubit-engine', phase: '3', ts: Date.now()
+      schema: 1, game: 'glow3d', phase: 4, ts: Date.now()
     }));
   } catch (e) {}
 })();

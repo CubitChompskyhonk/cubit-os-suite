@@ -10,37 +10,26 @@
     body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100dvh; padding: 18px 14px 32px; }
     .brand { color: var(--gold); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.14em; }
     h1 { font-size: 1.5rem; margin: 6px 0 4px; }
-    .sub { color: var(--mute); font-size: 0.8rem; margin-bottom: 14px; line-height: 1.4; }
+    .sub { color: var(--mute); font-size: 0.8rem; margin-bottom: 14px; }
     .stack { max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
     button {
       width: 100%; padding: 16px; border-radius: 12px; border: 1px solid var(--line);
       background: var(--card); color: var(--text); font-weight: 700; font-size: 1rem;
     }
     button.primary { border-color: var(--gold); background: #1a1810; color: #f0e6c8; }
-    .game { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
-    .game h2 { font-size: 1rem; margin: 4px 0; }
-    .game p { color: var(--mute); font-size: 0.78rem; margin-bottom: 10px; }
-    .tag { font-size: 0.65rem; color: var(--ok); letter-spacing: 0.06em; }
-    #log { max-width: 480px; margin: 12px auto 0; font-family: monospace; font-size: 0.7rem; color: var(--mute); white-space: pre-wrap; }
+    #log { max-width: 480px; margin: 12px auto 0; font-family: monospace; font-size: 0.7rem; color: var(--mute); }
   </style>
 </head>
 <body>
-  <div class="brand">CUBIT PLAY · VIRTUAL CONSOLE</div>
+  <div class="brand">CUBIT PLAY · ENGINE SHARED</div>
   <h1>Console menu</h1>
-  <p class="sub">Tap a game · full screen · device Back returns here</p>
+  <p class="sub">Phase 2–3 · cubit-engine · Glow 3D slice</p>
   <div class="stack">
-    <button type="button" class="primary" id="btnMaze">Play Cubit Maze</button>
-    <button type="button" class="primary" id="btnPrism">Play Project Prism</button>
-    <button type="button" class="primary" id="btnGlow">Play Under the Glow</button>
+    <button type="button" class="primary" id="btnGlow3d">Under the Glow 3D</button>
+    <button type="button" class="primary" id="btnMaze">Cubit Maze</button>
+    <button type="button" id="btnPrism">Project Prism</button>
+    <button type="button" id="btnGlow">Glow (classic)</button>
     <button type="button" id="btnOs">OS Home</button>
-  </div>
-  <div class="stack" style="margin-top:14px">
-    <div class="game">
-      <div class="tag">3D · WASD</div>
-      <h2>Cubit Maze</h2>
-      <p>Find the gold exit · touch pad + look drag</p>
-      <button type="button" class="primary" id="startMaze">Start</button>
-    </div>
   </div>
   <div id="log"></div>
   <script>
@@ -49,32 +38,26 @@
     var el = document.getElementById('log');
     if (el) el.textContent += m + '\n';
   }
-  function openNative(gameId, fileUrl) {
-    log('Open ' + gameId);
+  function openNative(id, url) {
+    log('Open ' + id);
     try {
-      if (window.CubitOS && typeof window.CubitOS.openGame === 'function') {
-        window.CubitOS.openGame(gameId);
-        return;
-      }
+      if (window.CubitOS && window.CubitOS.openGame) { window.CubitOS.openGame(id); return; }
     } catch (e) { log('bridge ' + e); }
-    window.location.href = fileUrl;
+    location.href = url;
   }
   function bind(id, fn) {
     var el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener('click', function (ev) { ev.preventDefault(); fn(); }, false);
+    if (el) el.addEventListener('click', function (e) { e.preventDefault(); fn(); });
   }
+  bind('btnGlow3d', function () { openNative('glow3d', 'games/glow3d/index.html'); });
   bind('btnMaze', function () { openNative('maze', 'games/maze/index.html'); });
-  bind('startMaze', function () { openNative('maze', 'games/maze/index.html'); });
   bind('btnPrism', function () { openNative('prism', 'games/prism/index.html'); });
   bind('btnGlow', function () {
     openNative('under-the-glow', 'games/under-the-glow/index.html?access=founder&play=1&console=cubit');
   });
   bind('btnOs', function () {
-    try {
-      if (window.CubitOS && window.CubitOS.openOsHome) { window.CubitOS.openOsHome(''); return; }
-    } catch (e) {}
-    window.location.href = '../index.html';
+    try { if (window.CubitOS && window.CubitOS.openOsHome) { window.CubitOS.openOsHome(''); return; } } catch (e) {}
+    location.href = '../index.html';
   });
   log('Play menu ready');
 })();

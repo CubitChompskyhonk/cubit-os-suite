@@ -7,76 +7,48 @@
   <style>
     :root { --bg:#0b0e14; --card:#121826; --line:#2a3142; --text:#e8ecf4; --mute:#8b93a7; --ok:#3dd68c; --gold:#c9a227; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: system-ui, sans-serif; background: var(--bg); color: var(--text);
-      min-height: 100dvh; padding: 18px 14px 32px;
-    }
+    body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100dvh; padding: 18px 14px 32px; }
     .brand { color: var(--gold); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.14em; }
     h1 { font-size: 1.5rem; margin: 6px 0 4px; }
     .sub { color: var(--mute); font-size: 0.8rem; margin-bottom: 14px; line-height: 1.4; }
-    .tv {
-      max-width: 480px; margin: 0 auto 14px; border: 3px solid #1a2030; border-radius: 12px;
-      background: #05070c; min-height: 100px; padding: 16px; text-align: center;
-    }
-    .tv p { color: var(--mute); font-size: 0.85rem; line-height: 1.45; }
     .stack { max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
     button {
       width: 100%; padding: 16px; border-radius: 12px; border: 1px solid var(--line);
       background: var(--card); color: var(--text); font-weight: 700; font-size: 1rem;
-      -webkit-tap-highlight-color: transparent;
     }
     button.primary { border-color: var(--gold); background: #1a1810; color: #f0e6c8; }
-    button:active { opacity: 0.85; }
-    .game {
-      background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px;
-    }
-    .game h2 { font-size: 1rem; margin-bottom: 4px; }
+    .game { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+    .game h2 { font-size: 1rem; margin: 4px 0; }
     .game p { color: var(--mute); font-size: 0.78rem; margin-bottom: 10px; }
-    .tag { font-size: 0.65rem; color: var(--ok); letter-spacing: 0.06em; margin-bottom: 4px; }
-    #log {
-      max-width: 480px; margin: 12px auto 0; font-family: monospace; font-size: 0.7rem;
-      color: var(--mute); white-space: pre-wrap; min-height: 1.2em;
-    }
+    .tag { font-size: 0.65rem; color: var(--ok); letter-spacing: 0.06em; }
+    #log { max-width: 480px; margin: 12px auto 0; font-family: monospace; font-size: 0.7rem; color: var(--mute); white-space: pre-wrap; }
   </style>
 </head>
 <body>
   <div class="brand">CUBIT PLAY · VIRTUAL CONSOLE</div>
   <h1>Console menu</h1>
-  <p class="sub">Tap a game to load full screen. Device Back returns here.</p>
-
-  <div class="tv"><p>Cubit Play · first-party catalog</p></div>
-
+  <p class="sub">Tap a game · full screen · device Back returns here</p>
   <div class="stack">
+    <button type="button" class="primary" id="btnMaze">Play Cubit Maze</button>
     <button type="button" class="primary" id="btnPrism">Play Project Prism</button>
     <button type="button" class="primary" id="btnGlow">Play Under the Glow</button>
-    <button type="button" id="btnCrt">Toggle CRT shell</button>
     <button type="button" id="btnOs">OS Home</button>
   </div>
-
-  <div class="stack" style="margin-top:14px" id="catalog">
+  <div class="stack" style="margin-top:14px">
     <div class="game">
-      <div class="tag">N64-CLASS · CUBIT ENG</div>
-      <h2>Project Prism</h2>
-      <p>Engine showcase · greybox · FPS bench</p>
-      <button type="button" class="primary" id="startPrism">Start</button>
-    </div>
-    <div class="game">
-      <div class="tag">N64-CLASS · CUBIT GAMES</div>
-      <h2>Under the Glow</h2>
-      <p>Surreal horror under the TV glow</p>
-      <button type="button" class="primary" id="startGlow">Start</button>
+      <div class="tag">3D · WASD</div>
+      <h2>Cubit Maze</h2>
+      <p>Find the gold exit · touch pad + look drag</p>
+      <button type="button" class="primary" id="startMaze">Start</button>
     </div>
   </div>
-
   <div id="log"></div>
-
   <script>
 (function () {
   function log(m) {
     var el = document.getElementById('log');
     if (el) el.textContent += m + '\n';
   }
-
   function openNative(gameId, fileUrl) {
     log('Open ' + gameId);
     try {
@@ -84,55 +56,26 @@
         window.CubitOS.openGame(gameId);
         return;
       }
-    } catch (e) {
-      log('bridge err ' + e);
-    }
-    // Fallback: same-directory relative navigation (always works in WebView)
+    } catch (e) { log('bridge ' + e); }
     window.location.href = fileUrl;
   }
-
-  function playPrism() {
-    openNative('prism', 'games/prism/index.html');
-  }
-
-  function playGlow() {
-    openNative(
-      'under-the-glow',
-      'games/under-the-glow/index.html?access=founder&play=1&console=cubit'
-    );
-  }
-
-  function goOs() {
-    try {
-      if (window.CubitOS && typeof window.CubitOS.openOsHome === 'function') {
-        window.CubitOS.openOsHome('');
-        return;
-      }
-    } catch (e) {}
-    window.location.href = '../index.html';
-  }
-
   function bind(id, fn) {
     var el = document.getElementById(id);
-    if (!el) {
-      log('missing #' + id);
-      return;
-    }
-    el.addEventListener('click', function (ev) {
-      ev.preventDefault();
-      fn();
-    }, false);
+    if (!el) return;
+    el.addEventListener('click', function (ev) { ev.preventDefault(); fn(); }, false);
   }
-
-  bind('btnPrism', playPrism);
-  bind('startPrism', playPrism);
-  bind('btnGlow', playGlow);
-  bind('startGlow', playGlow);
-  bind('btnOs', goOs);
-  bind('btnCrt', function () {
-    document.body.style.boxShadow = document.body.style.boxShadow ? '' : 'inset 0 0 80px rgba(0,0,0,0.35)';
+  bind('btnMaze', function () { openNative('maze', 'games/maze/index.html'); });
+  bind('startMaze', function () { openNative('maze', 'games/maze/index.html'); });
+  bind('btnPrism', function () { openNative('prism', 'games/prism/index.html'); });
+  bind('btnGlow', function () {
+    openNative('under-the-glow', 'games/under-the-glow/index.html?access=founder&play=1&console=cubit');
   });
-
+  bind('btnOs', function () {
+    try {
+      if (window.CubitOS && window.CubitOS.openOsHome) { window.CubitOS.openOsHome(''); return; }
+    } catch (e) {}
+    window.location.href = '../index.html';
+  });
   log('Play menu ready');
 })();
   </script>

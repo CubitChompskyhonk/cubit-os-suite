@@ -104,6 +104,7 @@
       </div>
     </div>
     <div id="death">
+      <video id="deathVid" playsinline muted loop style="max-width:92%;max-height:42%;border:1px solid #3a2040;background:#000"></video>
       <h1>STATIC</h1>
       <p id="deathReason">The house takes a small trophy.</p>
       <button type="button" id="btnRespawn">Wake under the glow</button>
@@ -219,94 +220,98 @@
      yard south of hall, basement further south, bedroom north of tv, attic north of bedroom
   */
   var W = 1, F = 0;
-  var MAP = [
-    // z0 attic
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1],
-    // bedroom
-    [1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1],
-    // living - tv - hall - mirror · kitchen north pocket via hall
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,1,1,1,0,1,1,0,0,0,0,0,0,0,0,1,1,1,1],
-    // kitchen row (north of deeper hall) — accessible from hall column
-    [1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1],
+var MAP = [
+    // attic (open)
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1],
+    // bedroom open
+    [1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1],
+    // main floor: laundry | living | tv | hall | mirror  (wide open corridor)
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    // kitchen wing (open south of hall)
+    [1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,1,1,1,1,1],
     // yard
-    [1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,1,1,1,1,1],
     // basement
-    [1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+    [1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
   ];
 
   // Zone classifier matching map
   function roomAt(x, z) {
-    if (z <= 2 && x >= 7 && x <= 10) return 'attic';
-    if (z >= 3 && z <= 4 && x >= 7 && x <= 10) return 'bedroom';
-    if (z >= 5 && z <= 7) {
-      if (x <= 3) return 'laundry';
-      if (x <= 6) return 'living';
-      if (x <= 10) return 'tv';
-      if (x <= 14) return 'hall';
+    if (z <= 3 && x >= 7 && x <= 13) return 'attic';
+    if (z >= 4 && z <= 5 && x >= 7 && x <= 13) return 'bedroom';
+    if (z >= 6 && z <= 10) {
+      if (x <= 4) return 'laundry';
+      if (x <= 8) return 'living';
+      if (x <= 12) return 'tv';
+      if (x <= 16) return 'hall';
       return 'mirror';
     }
-    if (z >= 8 && z <= 10 && x >= 11 && x <= 13) return 'kitchen';
-    if (z >= 11 && z <= 12 && x >= 11 && x <= 13) return 'yard';
-    if (z >= 13 && x >= 11 && x <= 13) return 'basement';
-    if (x <= 3) return 'laundry';
-    if (x <= 6) return 'living';
-    if (x <= 10) return 'tv';
-    if (x <= 14) return 'hall';
+    if (z >= 11 && z <= 13 && x >= 11 && x <= 15) return 'kitchen';
+    if (z >= 14 && z <= 15 && x >= 11 && x <= 15) return 'yard';
+    if (z >= 16 && x >= 11 && x <= 15) return 'basement';
+    if (x <= 4) return 'laundry';
+    if (x <= 8) return 'living';
+    if (x <= 12) return 'tv';
+    if (x <= 16) return 'hall';
     return 'mirror';
   }
 
   // Polygon props: boxes + markers
-  var props = [
-    // TV room
-    { x: 8, z: 6, type: 'tv', label: 'TV', color: '#7ec8ff', r: 42, kind: 'box', h: 0.9, w: 0.7 },
-    { x: 9, z: 6, type: 'vcr', label: 'VCR', color: '#4a6080', r: 20, kind: 'box', h: 0.25, w: 0.5 },
-    { x: 7, z: 5, type: 'remote', label: 'remote', color: '#9b8cff', r: 14 },
-    // bedroom tape A
-    { x: 8, z: 3, type: 'tape', tape: 'tape-a', label: 'tape', color: '#c07080', r: 16 },
-    { x: 9, z: 4, type: 'closet', label: 'closet', color: '#3a3048', r: 24, kind: 'box', h: 1.1, w: 0.6 },
+var props = [
+    // TV room center ~ x10 z8
+    { x: 10, z: 8, type: 'tv', label: 'TV', color: '#7ec8ff', r: 42, kind: 'box', h: 0.9, w: 0.7 },
+    { x: 11, z: 8, type: 'vcr', label: 'VCR', color: '#4a6080', r: 20, kind: 'box', h: 0.25, w: 0.5 },
+    { x: 9, z: 7, type: 'remote', label: 'remote', color: '#9b8cff', r: 14 },
+    { x: 10, z: 7, type: 'lamp', label: '', color: '#c9a227', r: 14, sprite: 'lamp_stand' },
+    // bedroom
+    { x: 9, z: 4, type: 'tape', tape: 'tape-a', label: 'tape', color: '#c07080', r: 16 },
+    { x: 11, z: 5, type: 'closet', label: 'closet', color: '#3a3048', r: 24, kind: 'box', h: 1.1, w: 0.6 },
+    { x: 10, z: 4, type: 'bed', label: '', color: '#604860', r: 30, sprite: 'bed' },
     // living
-    { x: 5, z: 6, type: 'couch', label: 'couch', color: '#4a5068', r: 30, kind: 'box', h: 0.4, w: 1.2 },
-    { x: 5, z: 6, type: 'npc', npc: 'sitter', label: '☺', color: '#a090b0', r: 18 },
-    { x: 4, z: 7, type: 'tape', tape: 'tape-f', label: 'tape', color: '#c07080', r: 16 },
+    { x: 6, z: 8, type: 'couch', label: 'couch', color: '#4a5068', r: 30, kind: 'box', h: 0.4, w: 1.2 },
+    { x: 6, z: 8, type: 'npc', npc: 'sitter', label: '☺', color: '#a090b0', r: 18 },
+    { x: 5, z: 9, type: 'tape', tape: 'tape-f', label: 'tape', color: '#c07080', r: 16 },
+    { x: 7, z: 7, type: 'bookshelf', label: '', color: '#4a3040', r: 22, sprite: 'bookshelf' },
+    { x: 7, z: 9, type: 'painting', label: '', color: '#806040', r: 18, sprite: 'paintings' },
     // laundry
-    { x: 2, z: 6, type: 'washer', label: 'wash', color: '#608090', r: 26, kind: 'box', h: 0.8, w: 0.6 },
-    { x: 1, z: 6, type: 'dryer', label: 'dry', color: '#507080', r: 26, kind: 'box', h: 0.8, w: 0.6 },
-    { x: 2, z: 7, type: 'tape', tape: 'tape-g', label: 'tape', color: '#c07080', r: 16 },
+    { x: 2, z: 8, type: 'washer', label: 'wash', color: '#608090', r: 26, kind: 'box', h: 0.8, w: 0.6 },
+    { x: 1, z: 8, type: 'dryer', label: 'dry', color: '#507080', r: 26, kind: 'box', h: 0.8, w: 0.6 },
+    { x: 3, z: 9, type: 'tape', tape: 'tape-g', label: 'tape', color: '#c07080', r: 16 },
     // hall
-    { x: 12, z: 6, type: 'runner', label: '', color: '#3a2848', r: 12 },
-    { x: 13, z: 5, type: 'tape', tape: 'tape-b', label: 'tape', color: '#c07080', r: 16 },
+    { x: 14, z: 8, type: 'runner', label: '', color: '#3a2848', r: 12 },
+    { x: 15, z: 7, type: 'tape', tape: 'tape-b', label: 'tape', color: '#c07080', r: 16 },
+    { x: 14, z: 9, type: 'plant', label: '', color: '#3a6040', r: 16, sprite: 'plant' },
     // mirror
-    { x: 16, z: 6, type: 'mirror', label: 'mirror', color: '#90a0b8', r: 32, kind: 'box', h: 1.0, w: 0.15 },
-    { x: 16, z: 6, type: 'npc', npc: 'watcher', label: '?', color: '#708090', r: 14 },
+    { x: 19, z: 8, type: 'mirror', label: 'mirror', color: '#90a0b8', r: 32, kind: 'box', h: 1.0, w: 0.15 },
+    { x: 19, z: 8, type: 'npc', npc: 'watcher', label: '?', color: '#708090', r: 14 },
     // kitchen
-    { x: 12, z: 9, type: 'fridge', label: 'fridge', color: '#b0b8c8', r: 30, kind: 'box', h: 1.1, w: 0.6 },
-    { x: 13, z: 9, type: 'stove', label: 'stove', color: '#403038', r: 24, kind: 'box', h: 0.5, w: 0.6 },
-    { x: 12, z: 10, type: 'clock', label: '3:17', color: '#c9a227', r: 14 },
-    { x: 13, z: 10, type: 'tape', tape: 'tape-c', label: 'tape', color: '#c07080', r: 16 },
-    { x: 11, z: 9, type: 'note', label: 'note', color: '#c9a227', r: 14 },
+    { x: 13, z: 12, type: 'fridge', label: 'fridge', color: '#b0b8c8', r: 30, kind: 'box', h: 1.1, w: 0.6 },
+    { x: 14, z: 12, type: 'stove', label: 'stove', color: '#403038', r: 24, kind: 'box', h: 0.5, w: 0.6 },
+    { x: 13, z: 13, type: 'clock', label: '3:17', color: '#c9a227', r: 14 },
+    { x: 15, z: 12, type: 'tape', tape: 'tape-c', label: 'tape', color: '#c07080', r: 16 },
+    { x: 12, z: 12, type: 'note', label: 'note', color: '#c9a227', r: 14 },
     // yard
-    { x: 12, z: 12, type: 'fence', label: 'fence', color: '#2a4030', r: 20, kind: 'box', h: 0.6, w: 1.4 },
-    { x: 13, z: 12, type: 'npc', npc: 'wrongdog', label: 'wag?', color: '#506048', r: 18 },
-    { x: 12, z: 11, type: 'tape', tape: 'tape-d', label: 'tape', color: '#c07080', r: 16 },
+    { x: 13, z: 15, type: 'fence', label: 'fence', color: '#2a4030', r: 20, kind: 'box', h: 0.6, w: 1.4 },
+    { x: 14, z: 15, type: 'npc', npc: 'wrongdog', label: 'wag?', color: '#506048', r: 18 },
+    { x: 12, z: 14, type: 'tape', tape: 'tape-d', label: 'tape', color: '#c07080', r: 16 },
     // basement
-    { x: 12, z: 13, type: 'water', label: 'water', color: '#304860', r: 22 },
+    { x: 13, z: 16, type: 'water', label: 'water', color: '#304860', r: 22 },
     // attic
-    { x: 8, z: 1, type: 'boxes', label: 'boxes', color: '#6a5030', r: 28, kind: 'box', h: 0.5, w: 0.8 },
-    { x: 9, z: 1, type: 'npc', npc: 'stacker', label: '☺', color: '#a08060', r: 16 },
-    { x: 8, z: 2, type: 'bed', label: '', color: '#604860', r: 30, sprite: 'bed' },
-    { x: 9, z: 6, type: 'lamp', label: '', color: '#c9a227', r: 14, sprite: 'lamp_stand' },
-    { x: 4, z: 5, type: 'bookshelf', label: '', color: '#4a3040', r: 22, sprite: 'bookshelf' },
-    { x: 15, z: 5, type: 'plant', label: '', color: '#3a6040', r: 16, sprite: 'plant' },
-    { x: 7, z: 6, type: 'painting', label: '', color: '#806040', r: 18, sprite: 'paintings' }
+    { x: 9, z: 2, type: 'boxes', label: 'boxes', color: '#6a5030', r: 28, kind: 'box', h: 0.5, w: 0.8 },
+    { x: 11, z: 2, type: 'npc', npc: 'stacker', label: '☺', color: '#a08060', r: 16 },
+    { x: 10, z: 1, type: 'bed', label: '', color: '#604860', r: 30, sprite: 'bed' }
   ];
 
   var inv = [];
@@ -415,13 +420,20 @@
     engine.running = false;
     document.getElementById('deathReason').textContent = reason || 'The house takes a small trophy.';
     document.getElementById('death').classList.add('show');
+    var v = document.getElementById('deathVid');
+    if (v) {
+      v.src = 'assets/death.mp4';
+      try { v.currentTime = 0; v.play(); } catch (e) {}
+    }
     say(reason, 'bad');
     save();
   }
   function respawn() {
     dead = false;
     document.getElementById('death').classList.remove('show');
-    engine.px = 8.5; engine.pz = 6.5; engine.yaw = 0;
+    var v = document.getElementById('deathVid');
+    if (v) { try { v.pause(); } catch (e) {} }
+    engine.px = 10.5; engine.pz = 8.5; engine.yaw = 0;
     engine.running = true;
     say('You wake under the glow. Status kept.', 'tv');
     setDangerAudio(false);
@@ -496,8 +508,8 @@
   var engine = new CubitEngine({
     canvas: canvas,
     map: MAP,
-    x: 8.5,
-    z: 6.5,
+    x: 10.5,
+    z: 8.5,
     yaw: 0,
     props: props,
     packs: { crt: true, fog: true },
@@ -519,6 +531,77 @@
     }
   });
   engine.bindPad(document.getElementById('pad'));
+
+  // Floor + wallpaper textures
+  var floorImg = new Image(); floorImg.src = 'assets/floor_tile.png';
+  var wallImg = new Image(); wallImg.src = 'assets/wallpaper.png';
+  var _render = engine.render.bind(engine);
+  engine.render = function () {
+    var g = this.g, IW = this.IW, IH = this.IH;
+    // ceiling
+    g.fillStyle = '#0a0e18';
+    g.fillRect(0, 0, IW, IH / 2);
+    // textured floor strips
+    if (floorImg.complete && floorImg.naturalWidth) {
+      try {
+        var pat = g.createPattern(floorImg, 'repeat');
+        g.save();
+        g.fillStyle = pat;
+        g.globalAlpha = 0.85;
+        g.fillRect(0, IH / 2, IW, IH / 2);
+        g.restore();
+        g.fillStyle = 'rgba(10,14,24,0.35)';
+        g.fillRect(0, IH / 2, IW, IH / 2);
+      } catch (e) {
+        g.fillStyle = '#121820';
+        g.fillRect(0, IH / 2, IW, IH / 2);
+      }
+    } else {
+      g.fillStyle = '#121820';
+      g.fillRect(0, IH / 2, IW, IH / 2);
+    }
+    var walls = [];
+    for (var z = 0; z < this.rows; z++) {
+      for (var x = 0; x < this.cols; x++) {
+        if (this.map[z][x] !== 1) continue;
+        var dx = x + 0.5 - this.px, dz = z + 0.5 - this.pz;
+        walls.push({ x: x, z: z, d: dx * dx + dz * dz });
+      }
+    }
+    walls.sort(function (a, b) { return b.d - a.d; });
+    var self = this;
+    walls.forEach(function (w) { self.drawWall(w.x, w.z); });
+    // wallpaper decals denser
+    if (wallImg.complete && wallImg.naturalWidth) {
+      walls.forEach(function (w) {
+        if (w.d > 64) return;
+        var p = self.project(w.x + 0.5, 0.55, w.z + 0.5);
+        if (!p) return;
+        var h = Math.min(90, 55 / Math.max(0.4, p.z * 0.18));
+        g.globalAlpha = 0.55;
+        try { g.drawImage(wallImg, p.x - h * 0.45, p.y - h * 0.7, h * 0.9, h); } catch (e) {}
+        g.globalAlpha = 1;
+      });
+    }
+    this.props.forEach(function (pr) { self.drawProp(pr); });
+    if (this.packs.fog) {
+      var fog = g.createLinearGradient(0, IH * 0.35, 0, IH);
+      fog.addColorStop(0, 'rgba(10,14,24,0)');
+      fog.addColorStop(1, 'rgba(10,14,24,0.7)');
+      g.fillStyle = fog;
+      g.fillRect(0, 0, IW, IH);
+    }
+    var ctx = this.ctx;
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    ctx.drawImage(this.off, 0, 0, this.canvas.width, this.canvas.height);
+    if (this.packs.crt) {
+      ctx.fillStyle = 'rgba(0,0,0,0.1)';
+      for (var y = 0; y < this.canvas.height; y += 3) ctx.fillRect(0, y, this.canvas.width, 1);
+    }
+  };
+
 
   function billboard(x, y, z, img, scale) {
     if (!img || !img.complete || !img.naturalWidth) return false;
@@ -708,7 +791,7 @@
   document.getElementById('btnFlee').onclick = function () {
     if (!danger.active || dead) return;
     endDanger();
-    engine.px = 8.5; engine.pz = 6.5; engine.yaw = 0;
+    engine.px = 10.5; engine.pz = 8.5; engine.yaw = 0;
     say('You run under the glow.', 'tv');
     save();
   };

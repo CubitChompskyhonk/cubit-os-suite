@@ -25,6 +25,7 @@
   <h1>Console menu</h1>
   <p class="sub">Phase 2–3 · cubit-engine · Glow 3D slice</p>
   <div class="stack">
+    <button type="button" class="primary" id="btnTank">Tank Wars</button>
     <button type="button" class="primary" id="btnGlow3d">Under the Glow 3D</button>
     <button type="button" class="primary" id="btnMaze">Cubit Maze</button>
     <button type="button" id="btnPrism">Project Prism</button>
@@ -49,6 +50,7 @@
     var el = document.getElementById(id);
     if (el) el.addEventListener('click', function (e) { e.preventDefault(); fn(); });
   }
+  bind('btnTank', function () { openNative('tank-wars', 'games/tank-wars/index.html'); });
   bind('btnGlow3d', function () { openNative('glow3d', 'games/glow3d/index.html'); });
   bind('btnMaze', function () { openNative('maze', 'games/maze/index.html'); });
   bind('btnPrism', function () { openNative('prism', 'games/prism/index.html'); });

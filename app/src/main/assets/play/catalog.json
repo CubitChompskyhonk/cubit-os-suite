@@ -6,12 +6,12 @@
   "games": [
     {
       "id": "glow3d",
-      "title": "Under the Glow 3D",
-      "version": "0.4.0-phase4",
+      "title": "Under the Glow",
+      "version": "1.0.0",
       "path": "games/glow3d/index.html",
       "profile": "n64-class",
       "publisher": "Cubit Games",
-      "description": "Tapes \u00b7 danger \u00b7 death/respawn \u00b7 TV/hall/kitchen"
+      "description": "Full house 3D \u2014 all rooms, tapes, NPCs, danger music"
     },
     {
       "id": "maze",

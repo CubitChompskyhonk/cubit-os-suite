@@ -6,12 +6,12 @@
   "games": [
     {
       "id": "studios",
-      "title": "Cubit Studios (Proof)",
-      "version": "0.1.0",
+      "title": "Cubit Studios",
+      "version": "0.2.0",
       "path": "games/studios/index.html",
       "profile": "n64-class",
       "publisher": "Cubit Studios",
-      "description": "Director prompts \u00b7 actor marks \u00b7 virtual cam capture"
+      "description": "Director scripts \u00b7 shot list \u00b7 film cam \u00b7 record/still"
     },
     {
       "id": "hq",

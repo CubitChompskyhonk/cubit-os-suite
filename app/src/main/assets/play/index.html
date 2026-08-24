@@ -23,8 +23,9 @@
 <body>
   <div class="brand">CUBIT PLAY · ENGINE SHARED</div>
   <h1>Console menu</h1>
-  <p class="sub">Phase 2–3 · cubit-engine · Glow 3D slice</p>
+  <p class="sub">Cubit HQ · FPS · Glow · Maze · catalog live</p>
   <div class="stack">
+    <button type="button" class="primary" id="btnHq">Cubit HQ</button>
     <button type="button" class="primary" id="btnTank">Cubit FPS</button>
     <button type="button" class="primary" id="btnGlow3d">Under the Glow 3D</button>
     <button type="button" class="primary" id="btnMaze">Cubit Maze</button>
@@ -50,6 +51,7 @@
     var el = document.getElementById(id);
     if (el) el.addEventListener('click', function (e) { e.preventDefault(); fn(); });
   }
+  bind('btnHq', function () { openNative('hq', 'games/hq/index.html'); });
   bind('btnTank', function () { openNative('tank-wars', 'games/tank-wars/index.html'); });
   bind('btnGlow3d', function () { openNative('glow3d', 'games/glow3d/index.html'); });
   bind('btnMaze', function () { openNative('maze', 'games/maze/index.html'); });

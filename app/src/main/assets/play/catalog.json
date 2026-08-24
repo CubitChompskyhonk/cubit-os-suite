@@ -5,6 +5,15 @@
   "engine": "cubit-engine",
   "games": [
     {
+      "id": "hq",
+      "title": "Cubit HQ",
+      "version": "0.2.0",
+      "path": "games/hq/index.html",
+      "profile": "n64-class",
+      "publisher": "Cubit Play",
+      "description": "3D Head Offices \u00b7 PSX staff \u00b7 Sims commands \u00b7 FPS"
+    },
+    {
       "id": "tank-wars",
       "title": "Cubit FPS (Tank Wars foundation)",
       "version": "2.0.0",

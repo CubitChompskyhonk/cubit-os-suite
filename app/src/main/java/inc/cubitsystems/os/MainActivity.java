@@ -30,6 +30,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String ASSET_GLOW =
             "file:///android_asset/play/games/under-the-glow/index.html?access=founder&play=1&console=cubit";
     private static final String ASSET_LABS = "file:///android_asset/labs/experience.html";
+    private static final String ASSET_HQ_GAME = "file:///android_asset/play/games/hq/index.html";
+    private static final String ASSET_ONTRAC = "file:///android_asset/ontrac/index.html";
 
     private WebView webView;
 
@@ -97,6 +99,12 @@ public class MainActivity extends AppCompatActivity {
                         launchPackage(PKG_ASSIMILATE, "Assimilate");
                         break;
                     case "hq":
+                        webView.loadUrl(ASSET_HQ_GAME);
+                        break;
+                    case "ontrac":
+                        webView.loadUrl(ASSET_ONTRAC);
+                        break;
+                    case "hq-cloud":
                         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(URL_HQ)));
                         break;
                     case "connection":
@@ -122,8 +130,10 @@ public class MainActivity extends AppCompatActivity {
                     webView.loadUrl(ASSET_PRISM);
                 } else if ("under-the-glow".equals(id)) {
                     webView.loadUrl(ASSET_GLOW);
+                } else if ("hq".equals(id)) {
+                    webView.loadUrl(ASSET_HQ_GAME);
                 } else {
-                    Toast.makeText(MainActivity.this, "Unknown game", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Unknown game: " + id, Toast.LENGTH_SHORT).show();
                 }
             });
         }

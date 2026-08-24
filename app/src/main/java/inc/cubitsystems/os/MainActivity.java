@@ -31,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
             "file:///android_asset/play/games/under-the-glow/index.html?access=founder&play=1&console=cubit";
     private static final String ASSET_LABS = "file:///android_asset/labs/experience.html";
     private static final String ASSET_HQ_GAME = "file:///android_asset/play/games/hq/index.html";
+    private static final String ASSET_STUDIOS = "file:///android_asset/play/games/studios/index.html";
     private static final String ASSET_ONTRAC = "file:///android_asset/ontrac/index.html";
 
     private WebView webView;
@@ -132,6 +133,8 @@ public class MainActivity extends AppCompatActivity {
                     webView.loadUrl(ASSET_GLOW);
                 } else if ("hq".equals(id)) {
                     webView.loadUrl(ASSET_HQ_GAME);
+                } else if ("studios".equals(id)) {
+                    webView.loadUrl(ASSET_STUDIOS);
                 } else {
                     Toast.makeText(MainActivity.this, "Unknown game: " + id, Toast.LENGTH_SHORT).show();
                 }

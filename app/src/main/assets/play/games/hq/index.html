@@ -5,98 +5,52 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Cubit HQ</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #07090c; font-family: system-ui, sans-serif; color: #eef2f6; touch-action: none; }
-    #c { display: block; width: 100%; height: 100%; }
-    #boot {
-      position: absolute; inset: 0; z-index: 30; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; text-align: center; padding: 24px;
-      background: radial-gradient(ellipse at center, #152030 0%, #07090c 70%);
-    }
-    #boot.hide { display: none; }
-    .logo { font-size: 0.7rem; letter-spacing: 0.2em; color: #e8a045; font-weight: 800; }
-    #boot h1 { font-size: 1.7rem; margin: 10px 0; }
-    #boot p { color: #8b97a8; max-width: 340px; margin-bottom: 18px; }
-    #boot button {
-      border: none; border-radius: 12px; padding: 14px 28px; font-weight: 800;
-      background: linear-gradient(180deg, #f0b45a, #d4892a); color: #120c04;
-    }
-    #ui { position: absolute; left: 10px; top: 10px; max-width: min(360px, 92vw); z-index: 5; pointer-events: none; display: flex; flex-direction: column; gap: 8px; }
-    .panel { pointer-events: auto; background: rgba(10,14,20,0.92); border: 1px solid #2a3444; border-radius: 12px; padding: 10px 12px; }
-    .brand { font-size: 0.6rem; letter-spacing: 0.14em; color: #e8a045; font-weight: 800; }
-    h2 { font-size: 0.95rem; margin: 4px 0; }
-    .muted { color: #8b97a8; font-size: 0.75rem; }
-    .row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-    button.ui {
-      border: none; border-radius: 8px; padding: 8px 10px; font-weight: 700; font-size: 0.75rem;
-      background: #3d7eb0; color: #061018; cursor: pointer;
-    }
-    button.ui.sec { background: #1a222c; color: #c5d0dc; border: 1px solid #2a3444; }
-    button.ui.cmd { background: #1e3d2e; color: #9dccb0; }
-    #selected { display: none; }
-    #selected.show { display: block; }
-    #log {
-      position: absolute; right: 10px; top: 10px; width: min(280px, 40vw); max-height: 100px;
-      overflow: auto; font-size: 0.68rem; color: #9aa8b8; background: rgba(10,14,20,0.85);
-      border-radius: 8px; padding: 8px; border: 1px solid #2a3444; z-index: 5; pointer-events: none;
-    }
-    #speech {
-      display: none; position: absolute; left: 50%; bottom: 140px; transform: translateX(-50%);
-      max-width: min(400px, 90vw); background: rgba(12,16,22,0.95); border: 1px solid #e8a045;
-      border-radius: 12px; padding: 12px 14px; z-index: 8;
-    }
-    #speech.show { display: block; }
-    #speech .who { color: #e8a045; font-weight: 800; font-size: 0.75rem; }
-    /* FPS on-screen controls */
-    #pad {
-      display: none; position: absolute; left: 0; right: 0; bottom: 0; height: 160px; z-index: 12; pointer-events: none;
-    }
-    #pad.show { display: block; }
-    .wasd {
-      position: absolute; left: 12px; bottom: 12px; width: 148px; height: 148px; pointer-events: none;
-    }
-    .wasd button {
-      position: absolute; width: 46px; height: 46px; border: 1px solid #3a4558; border-radius: 10px;
-      background: rgba(20,28,40,0.85); color: #eef2f6; font-weight: 800; font-size: 0.85rem;
-      pointer-events: auto; -webkit-user-select: none; user-select: none;
-    }
-    .wasd .w { left: 51px; top: 0; }
-    .wasd .a { left: 0; top: 51px; }
-    .wasd .s { left: 51px; top: 51px; }
-    .wasd .d { left: 102px; top: 51px; }
-    .wasd .shift { left: 51px; top: 102px; font-size: 0.65rem; }
-    .look {
-      position: absolute; right: 12px; bottom: 12px; width: 148px; height: 148px; pointer-events: none;
-    }
-    .look button {
-      position: absolute; width: 46px; height: 46px; border: 1px solid #3a4558; border-radius: 10px;
-      background: rgba(20,28,40,0.85); color: #eef2f6; font-weight: 800; pointer-events: auto;
-    }
-    .look .u { left: 51px; top: 0; }
-    .look .l { left: 0; top: 51px; }
-    .look .r { left: 102px; top: 51px; }
-    .look .dn { left: 51px; top: 51px; }
-    #hint {
-      position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); z-index: 6;
-      font-size: 0.7rem; color: #8b97a8; background: rgba(0,0,0,0.5); padding: 4px 10px; border-radius: 12px;
-      pointer-events: none;
-    }
-    #pad.show ~ #hint { bottom: 170px; }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{width:100%;height:100%;overflow:hidden;background:#07090c;font-family:system-ui,sans-serif;color:#eef2f6;touch-action:none}
+    #c{display:block;width:100%;height:100%}
+    #boot{position:absolute;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;background:radial-gradient(ellipse at center,#152030 0%,#07090c 70%)}
+    #boot.hide{display:none}
+    .logo{font-size:.7rem;letter-spacing:.2em;color:#e8a045;font-weight:800}
+    #boot h1{font-size:1.7rem;margin:10px 0}
+    #boot p{color:#8b97a8;max-width:340px;margin-bottom:18px;line-height:1.4}
+    #boot button{border:none;border-radius:12px;padding:14px 28px;font-weight:800;font-size:1rem;background:linear-gradient(180deg,#f0b45a,#d4892a);color:#120c04}
+    #ui{position:absolute;left:10px;top:10px;max-width:min(340px,90vw);z-index:5;pointer-events:none;display:flex;flex-direction:column;gap:8px}
+    .panel{pointer-events:auto;background:rgba(10,14,20,.92);border:1px solid #2a3444;border-radius:12px;padding:10px 12px}
+    .brand{font-size:.6rem;letter-spacing:.14em;color:#e8a045;font-weight:800}
+    h2{font-size:.95rem;margin:4px 0}
+    .muted{color:#8b97a8;font-size:.75rem}
+    .row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+    button.ui{border:none;border-radius:8px;padding:8px 10px;font-weight:700;font-size:.75rem;background:#3d7eb0;color:#061018}
+    button.ui.sec{background:#1a222c;color:#c5d0dc;border:1px solid #2a3444}
+    button.ui.cmd{background:#1e3d2e;color:#9dccb0}
+    #selected{display:none}#selected.show{display:block}
+    #log{position:absolute;right:10px;top:10px;width:min(260px,38vw);max-height:90px;overflow:auto;font-size:.68rem;color:#9aa8b8;background:rgba(10,14,20,.85);border-radius:8px;padding:8px;border:1px solid #2a3444;z-index:5;pointer-events:none}
+    #speech{display:none;position:absolute;left:50%;bottom:155px;transform:translateX(-50%);max-width:min(400px,90vw);background:rgba(12,16,22,.95);border:1px solid #e8a045;border-radius:12px;padding:12px 14px;z-index:8}
+    #speech.show{display:block}
+    #speech .who{color:#e8a045;font-weight:800;font-size:.75rem;margin-bottom:4px}
+    #pad{display:none;position:absolute;left:0;right:0;bottom:0;height:160px;z-index:12;pointer-events:none}
+    #pad.show{display:block}
+    .wasd{position:absolute;left:12px;bottom:12px;width:148px;height:148px}
+    .look{position:absolute;right:12px;bottom:12px;width:148px;height:148px}
+    .wasd button,.look button{position:absolute;width:46px;height:46px;border:1px solid #3a4558;border-radius:10px;background:rgba(20,28,40,.9);color:#eef2f6;font-weight:800;font-size:.85rem;pointer-events:auto;-webkit-user-select:none;user-select:none}
+    .wasd .w{left:51px;top:0}.wasd .a{left:0;top:51px}.wasd .s{left:51px;top:51px}.wasd .d{left:102px;top:51px}.wasd .shift{left:51px;top:102px;font-size:.65rem}
+    .look .u{left:51px;top:0}.look .l{left:0;top:51px}.look .r{left:102px;top:51px}.look .dn{left:51px;top:51px}
+    #hint{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);z-index:6;font-size:.7rem;color:#8b97a8;background:rgba(0,0,0,.5);padding:4px 10px;border-radius:12px;pointer-events:none}
   </style>
 </head>
 <body>
   <div id="boot">
     <div class="logo">CUBIT PLAY · HEAD OFFICES</div>
     <h1>Cubit Systems HQ</h1>
-    <p>Proper mesh NPCs · Sims commands · FPS with on-screen WASD</p>
-    <button type="button" id="btnEnter">Enter the office</button>
+    <p>Command the floor · First-person walk · Stable offline demo</p>
+    <button type="button" id="btnEnter" onclick="if(window.__cubitEnterOffice)window.__cubitEnterOffice();else document.getElementById('hint').textContent='Engine still loading…'">Enter the office</button>
   </div>
   <canvas id="c"></canvas>
   <div id="ui">
     <div class="panel">
       <div class="brand">CUBIT HQ</div>
       <h2>Head Offices</h2>
-      <p class="muted">Tap staff · command · FPS pad</p>
+      <p class="muted">Tap staff · commands · FPS pad</p>
       <div class="row">
         <button type="button" class="ui" id="btnOrbit">Orbit</button>
         <button type="button" class="ui sec" id="btnFPS">First person</button>
@@ -133,445 +87,381 @@
       <button type="button" class="dn" data-look="down">▼</button>
     </div>
   </div>
-  <div id="hint">Enter the office</div>
-
-  <script type="module">
-import * as THREE from './src/three.module.js';
-import { GLTFLoader } from './src/jsm/loaders/GLTFLoader.js';
-import { FBXLoader } from './src/jsm/loaders/FBXLoader.js';
-
-const ROSTER = [
-  { id:'alex', name:'Alex Rivera', role:'Chief of Staff', model:'assets/models/Character_01.fbx', tex:'assets/models/Character_01.png', home:[-8,4.6],
-    lines:['Board pulse is green. Customer zero is the gate.','One Approve. One result.','I protect your attention.']},
-  { id:'morgan', name:'Morgan Ellis', role:'Software Engineer', model:'assets/models/Character_02.fbx', tex:'assets/models/Character_02.png', home:[-4,4.6],
-    lines:['Mesh skins are live — FBX no-rig models.','FPS pad works on touch.','FBX path beats UV-sheet billboards.']},
-  { id:'priya', name:'Priya Singh', role:'Tax & Compliance', model:'assets/models/Character_03.fbx', tex:'assets/models/Character_03.png', home:[0,4.6],
-    lines:['Level 1 disclosure. Level 2 changes.','No CRA passwords in product.','Refund awareness is respect.']},
-  { id:'kai', name:'Kai Nakamura', role:'Product Testing', model:'assets/models/Character_04.fbx', tex:'assets/models/Character_04.png', home:[4,4.6],
-    lines:['First screen of options is a fail.','Founder trial is the real gate.','Half measures are incomplete stages.']},
-  { id:'elena', name:'Elena Voss', role:'Marketing', model:'assets/models/Character_05.fbx', tex:'assets/models/Character_05.png', home:[8,4.6],
-    lines:['Celebrate in private. Truth in public.','Pilot is the word.','Dignity over hype.']},
-  { id:'jordan', name:'Jordan Hale', role:'Finance', model:'assets/models/Character_06.fbx', tex:'assets/models/Character_06.png', home:[-7,-3.5],
-    lines:['Fun budget approved. Watch runway.','No paid launch on a blank minute.','I track credits.']},
-  { id:'devon', name:'Devon Park', role:'IT / Security', model:'assets/models/Character_07.fbx', tex:'assets/models/Character_07.png', home:[7,-3.5],
-    lines:['Local assets only.','Encrypt the vault next.','Assume leak if not on-device.']},
-  { id:'taylor', name:'Taylor Kim', role:'Knowledge', model:'assets/models/Character_08.fbx', tex:'assets/models/Character_08.png', home:[2,-7],
-    lines:['This room is a navigable artifact.','Doctrine in docs. Culture on the floor.','I file what customer zero teaches.']},
-];
-
-const canvas = document.getElementById('c');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
-renderer.setSize(innerWidth, innerHeight);
-renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x151c28);
-scene.fog = new THREE.Fog(0x151c28, 18, 38);
-
-const orbitCam = new THREE.PerspectiveCamera(50, innerWidth/innerHeight, 0.1, 80);
-orbitCam.position.set(11, 12, 11);
-const fpsCam = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.1, 80);
-fpsCam.position.set(0, 1.55, 7);
-
-let mode = 'orbit', camYaw = Math.PI, camPitch = 0;
-const keys = {};
-const lookHeld = { left:0, right:0, up:0, down:0 };
-
-scene.add(new THREE.AmbientLight(0xb0bcc8, 0.7));
-const sun = new THREE.DirectionalLight(0xfff2dd, 0.95);
-sun.position.set(6, 14, 5);
-sun.castShadow = true;
-sun.shadow.mapSize.set(512, 512);
-sun.shadow.camera.near = 1; sun.shadow.camera.far = 40;
-sun.shadow.camera.left = -16; sun.shadow.camera.right = 16;
-sun.shadow.camera.top = 16; sun.shadow.camera.bottom = -16;
-scene.add(sun);
-
-const floor = new THREE.Mesh(
-  new THREE.PlaneGeometry(28, 20),
-  new THREE.MeshStandardMaterial({ color: 0x3a4558, roughness: 0.2 })
-);
-floor.rotation.x = -Math.PI/2; floor.receiveShadow = true; scene.add(floor);
-
-function wall(w,h,d,x,y,z) {
-  const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), new THREE.MeshStandardMaterial({ color: 0x2a3344, roughness: 0.9 }));
-  m.position.set(x,y,z); m.receiveShadow = true; scene.add(m);
-}
-wall(28, 3.2, 0.3, 0, 1.6, -10);
-wall(28, 3.2, 0.3, 0, 1.6, 10);
-wall(0.3, 3.2, 20, -14, 1.6, 0);
-wall(0.3, 3.2, 20, 14, 1.6, 0);
-
-const gltfLoader = new GLTFLoader();
-const fbxLoader = new FBXLoader();
-const texLoader = new THREE.TextureLoader();
-const furn = new THREE.Group(); scene.add(furn);
-
-function loadGLB(path, pos, rotY=0) {
-  return new Promise((res) => {
-    gltfLoader.load(path, (g) => {
-      const o = g.scene;
-      o.traverse((c) => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
-      o.position.set(...pos); o.rotation.y = rotY; furn.add(o); res(o);
-    }, undefined, () => {
-      const b = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.55, 0.6), new THREE.MeshStandardMaterial({ color: 0x556677 }));
-      b.position.set(pos[0], 0.28, pos[2]); furn.add(b); res(b);
-    });
-  });
-}
-
-async function placeFurniture() {
-  const items = [
-    ['assets/furniture/desk1.glb',[-8,0,4],0],['assets/furniture/desk1.glb',[-4,0,4],0],
-    ['assets/furniture/desk2.glb',[0,0,4],0],['assets/furniture/desk1.glb',[4,0,4],0],['assets/furniture/desk2.glb',[8,0,4],0],
-    ['assets/furniture/office_chair_blue.glb',[-8,0,5.3],Math.PI],['assets/furniture/office_chair_black.glb',[-4,0,5.3],Math.PI],
-    ['assets/furniture/office_chair_blue.glb',[0,0,5.3],Math.PI],['assets/furniture/office_chair_black.glb',[4,0,5.3],Math.PI],
-    ['assets/furniture/office_chair_blue.glb',[8,0,5.3],Math.PI],
-    ['assets/furniture/conference_desk.glb',[0,0,-2.5],0],
-    ['assets/furniture/conference_chair.glb',[-2,0,-4],0],['assets/furniture/conference_chair.glb',[0,0,-4],0],
-    ['assets/furniture/conference_chair.glb',[2,0,-4],0],
-    ['assets/furniture/book_case.glb',[12.5,0,-7],-Math.PI/2],
-    ['assets/furniture/couch_blue.glb',[10,0,7.5],Math.PI],
-  ];
-  await Promise.all(items.map(([p,pos,r]) => loadGLB(p,pos,r)));
-}
-
-const npcs = [];
-const npcGroup = new THREE.Group(); scene.add(npcGroup);
-
-function makeFallbackBody(color) {
-  const g = new THREE.Group();
-  const body = new THREE.Mesh(
-    new THREE.CapsuleGeometry(0.25, 0.55, 4, 8),
-    new THREE.MeshStandardMaterial({ color, roughness: 0.65 })
-  );
-  body.position.y = 0.9; body.castShadow = true; g.add(body);
-  const head = new THREE.Mesh(
-    new THREE.SphereGeometry(0.2, 12, 12),
-    new THREE.MeshStandardMaterial({ color: 0xe8c4a8, roughness: 0.45 })
-  );
-  head.position.y = 1.5; head.castShadow = true; g.add(head);
-  return g;
-}
-
-function fitModel(obj) {
-  // Normalize FBX scale to ~1.7m tall standing figure
-  const box = new THREE.Box3().setFromObject(obj);
-  const size = new THREE.Vector3();
-  box.getSize(size);
-  const height = Math.max(size.y, 0.001);
-  const scale = 1.65 / height;
-  obj.scale.setScalar(scale);
-  box.setFromObject(obj);
-  obj.position.y -= box.min.y;
-  obj.traverse((c) => {
-    if (c.isMesh) {
-      c.castShadow = true;
-      c.receiveShadow = true;
-      if (c.material) {
-        const mats = Array.isArray(c.material) ? c.material : [c.material];
-        mats.forEach((m) => {
-          if (m.map) m.map.colorSpace = THREE.SRGBColorSpace;
-          m.side = THREE.FrontSide;
-        });
-      }
-    }
-  });
-}
-
-function applyTexture(obj, texPath) {
-  return new Promise((resolve) => {
-    texLoader.load(texPath, (tex) => {
-      tex.colorSpace = THREE.SRGBColorSpace;
-      tex.flipY = false; // FBX UV convention often needs this
-      obj.traverse((c) => {
-        if (c.isMesh) {
-          const mats = Array.isArray(c.material) ? c.material : [c.material];
-          mats.forEach((m) => {
-            m.map = tex;
-            m.needsUpdate = true;
-          });
-        }
-      });
-      resolve();
-    }, undefined, () => resolve());
-  });
-}
-
-function makeLabel(name, role) {
-  const c2 = document.createElement('canvas');
-  c2.width = 256; c2.height = 64;
-  const cx = c2.getContext('2d');
-  cx.fillStyle = 'rgba(0,0,0,0.72)';
-  cx.beginPath(); cx.roundRect(0, 8, 256, 48, 8); cx.fill();
-  cx.fillStyle = '#fff'; cx.font = 'bold 20px system-ui'; cx.textAlign = 'center';
-  cx.fillText(name.split(' ')[0], 128, 30);
-  cx.fillStyle = '#e8a045'; cx.font = '13px system-ui'; cx.fillText(role, 128, 48);
-  const label = new THREE.Mesh(
-    new THREE.PlaneGeometry(1.15, 0.28),
-    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c2), transparent: true, depthTest: true })
-  );
-  label.position.y = 1.95;
-  return label;
-}
-
-async function loadStaff(data) {
-  const root = new THREE.Group();
-  root.position.set(data.home[0], 0, data.home[1]);
-  root.userData = {
-    ...data, status: 'Idle at desk', target: null, speed: 1.7, command: null,
-    lineIdx: 0, phase: Math.random() * 6, moving: false, mesh: null, label: null
-  };
-
-  try {
-    const obj = await new Promise((resolve, reject) => {
-      fbxLoader.load(data.model, resolve, undefined, reject);
-    });
-    await applyTexture(obj, data.tex);
-    fitModel(obj);
-    root.add(obj);
-    root.userData.mesh = obj;
-  } catch (e) {
-    log('Mesh fail ' + data.id + ' — fallback body');
-    const fb = makeFallbackBody(0x5b9fd4);
-    root.add(fb);
-    root.userData.mesh = fb;
+  <div id="hint">Loading engine…</div>
+  <div id="err" style="display:none;position:absolute;left:12px;right:12px;top:40%;z-index:40;background:#3a1515;border:1px solid #a04040;color:#f0c0c0;padding:12px;border-radius:10px;font-size:0.8rem;white-space:pre-wrap"></div>
+  <script src="./src/three.min.js"></script>
+  <script>
+(function () {
+  function showErr(m) {
+    var el = document.getElementById('err');
+    if (el) { el.style.display = 'block'; el.textContent = m; }
+    var h = document.getElementById('hint');
+    if (h) h.textContent = 'Error — see message';
   }
-
-  const label = makeLabel(data.name, data.role);
-  root.add(label);
-  root.userData.label = label;
-
-  // Invisible hit capsule for picking
-  const hit = new THREE.Mesh(
-    new THREE.CapsuleGeometry(0.4, 1.0, 2, 6),
-    new THREE.MeshBasicMaterial({ visible: false })
-  );
-  hit.position.y = 0.95;
-  root.add(hit);
-
-  npcGroup.add(root);
-  npcs.push(root);
-  return root;
-}
-
-let selected = null;
-const raycaster = new THREE.Raycaster();
-const pointer = new THREE.Vector2();
-
-function log(msg) {
-  const el = document.getElementById('log');
-  el.innerHTML = '• ' + msg + '<br>' + el.innerHTML;
-}
-function showSpeech(who, text) {
-  document.getElementById('spWho').textContent = who;
-  document.getElementById('spText').textContent = text;
-  document.getElementById('speech').classList.add('show');
-  clearTimeout(showSpeech._t);
-  showSpeech._t = setTimeout(() => document.getElementById('speech').classList.remove('show'), 5000);
-}
-function selectNPC(npc) {
-  selected = npc;
-  const d = npc.userData;
-  document.getElementById('selected').classList.add('show');
-  document.getElementById('selName').textContent = d.name;
-  document.getElementById('selRole').textContent = d.role.toUpperCase();
-  document.getElementById('selStatus').textContent = d.status;
-  log('Selected ' + d.name);
-}
-function command(cmd) {
-  if (!selected) return;
-  const d = selected.userData;
-  d.command = cmd;
-  const spots = {
-    work: new THREE.Vector3(d.home[0], 0, d.home[1]),
-    meet: new THREE.Vector3((Math.random() - 0.5) * 2.5, 0, -3.2),
-    break: new THREE.Vector3(10, 0, 7.2),
-    report: new THREE.Vector3(-8, 0, 4.5),
-  };
-  if (cmd === 'talk') {
-    const line = d.lines[d.lineIdx++ % d.lines.length];
-    d.status = 'Speaking with founder';
-    document.getElementById('selStatus').textContent = d.status;
-    showSpeech(d.name + ' · ' + d.role, line);
-    log(d.name + ': ' + line);
+  try {
+  if (typeof THREE === 'undefined') {
+    showErr('THREE undefined — three.min.js failed');
     return;
   }
-  d.target = spots[cmd];
-  d.status = ({ work: 'Working at desk', meet: 'Heading to boardroom', break: 'On break', report: 'Preparing report' })[cmd];
-  document.getElementById('selStatus').textContent = d.status;
-  log('→ ' + d.name + ': ' + cmd);
-}
+  var ROSTER = [
+    { id:'alex', name:'Alex Rivera', role:'Chief of Staff', color:0xe8a045, home:[-8,4.6],
+      lines:['Board pulse is green. Customer zero is the gate.','One Approve. One result.','I protect your attention.']},
+    { id:'morgan', name:'Morgan Ellis', role:'Software Engineer', color:0x5b9fd4, home:[-4,4.6],
+      lines:['Classic script path — works in WebView.','FPS pad works on touch.','Demos must boot every time.']},
+    { id:'priya', name:'Priya Singh', role:'Tax & Compliance', color:0x3dd68c, home:[0,4.6],
+      lines:['Level 1 disclosure. Level 2 changes.','No CRA passwords in product.','Refund awareness is respect.']},
+    { id:'kai', name:'Kai Nakamura', role:'Product Testing', color:0xc070e0, home:[4,4.6],
+      lines:['Enter must always work. This path is proven.','Founder trial is the real gate.','Stable beats fancy.']},
+    { id:'elena', name:'Elena Voss', role:'Marketing', color:0xe07090, home:[8,4.6],
+      lines:['Celebrate in private. Truth in public.','Pilot is the word.','Dignity over hype.']},
+    { id:'jordan', name:'Jordan Hale', role:'Finance', color:0x70c0c0, home:[-7,-3.5],
+      lines:['Fun budget approved. Watch runway.','No paid launch on a blank minute.','I track credits.']},
+    { id:'devon', name:'Devon Park', role:'IT / Security', color:0x9090a8, home:[7,-3.5],
+      lines:['Local assets only.','Encrypt the vault next.','Assume leak if not on-device.']},
+    { id:'taylor', name:'Taylor Kim', role:'Knowledge', color:0xd0b070, home:[2,-7],
+      lines:['This room is a navigable artifact.','Doctrine in docs. Culture on the floor.','I file what customer zero teaches.']}
+  ];
 
-document.querySelectorAll('[data-cmd]').forEach((b) => {
-  b.onclick = () => command(b.getAttribute('data-cmd'));
-});
+  var canvas = document.getElementById('c');
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  try { if (THREE.SRGBColorSpace) renderer.outputColorSpace = THREE.SRGBColorSpace; } catch (e) {}
+  renderer.shadowMap.enabled = true;
 
-function setMode(m) {
-  mode = m;
-  const pad = document.getElementById('pad');
-  if (m === 'fps') {
-    pad.classList.add('show');
-    fpsCam.position.set(0, 1.55, 7);
-    camYaw = Math.PI; camPitch = 0;
-    document.getElementById('hint').textContent = 'WASD pad · look pad · tap staff';
-    log('First-person');
-  } else {
-    pad.classList.remove('show');
-    document.getElementById('hint').textContent = 'Orbit: drag · tap staff';
+  var scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x151c28);
+  scene.fog = new THREE.Fog(0x151c28, 18, 38);
+
+  var orbitCam = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 80);
+  orbitCam.position.set(11, 12, 11);
+  var fpsCam = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 80);
+  fpsCam.position.set(0, 1.55, 7);
+
+  var mode = 'orbit', camYaw = Math.PI, camPitch = 0;
+  var keys = {};
+  var lookHeld = { left: 0, right: 0, up: 0, down: 0 };
+
+  scene.add(new THREE.AmbientLight(0xb0bcc8, 0.75));
+  var sun = new THREE.DirectionalLight(0xfff2dd, 0.95);
+  sun.position.set(6, 14, 5);
+  sun.castShadow = true;
+  scene.add(sun);
+
+  var floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(28, 20),
+    new THREE.MeshStandardMaterial({ color: 0x3a4558, roughness: 0.25 })
+  );
+  floor.rotation.x = -Math.PI / 2;
+  floor.receiveShadow = true;
+  scene.add(floor);
+
+  function box(w, h, d, x, y, z, color) {
+    var m = new THREE.Mesh(
+      new THREE.BoxGeometry(w, h, d),
+      new THREE.MeshStandardMaterial({ color: color, roughness: 0.75 })
+    );
+    m.position.set(x, y, z);
+    m.castShadow = true;
+    scene.add(m);
   }
-}
-document.getElementById('btnOrbit').onclick = () => setMode('orbit');
-document.getElementById('btnFPS').onclick = () => setMode('fps');
-document.getElementById('btnReset').onclick = () => {
-  npcs.forEach((n) => {
-    n.position.set(n.userData.home[0], 0, n.userData.home[1]);
-    n.userData.target = null; n.userData.status = 'Idle at desk'; n.userData.command = null; n.userData.moving = false;
+  box(28, 3.2, 0.3, 0, 1.6, -10, 0x2a3344);
+  box(28, 3.2, 0.3, 0, 1.6, 10, 0x2a3344);
+  box(0.3, 3.2, 20, -14, 1.6, 0, 0x2a3344);
+  box(0.3, 3.2, 20, 14, 1.6, 0, 0x2a3344);
+  [-8, -4, 0, 4, 8].forEach(function (x) {
+    box(1.6, 0.08, 0.8, x, 0.72, 4, 0x5a4a3a);
+    box(0.5, 0.55, 0.45, x, 0.55, 5.2, 0x2a3545);
+    box(0.45, 0.35, 0.06, x, 1.05, 3.7, 0x222);
   });
-  log('Floor reset');
-};
+  box(5, 0.1, 2.2, 0, 0.75, -2.5, 0x4a3a2a);
+  [-2, 0, 2].forEach(function (x) { box(0.45, 0.55, 0.45, x, 0.55, -4, 0x3a4555); });
+  box(2.2, 0.6, 0.9, 10, 0.35, 7.5, 0x3a5a8a);
+  box(0.5, 2.0, 1.2, 12.5, 1.0, -7, 0x5a4030);
 
-// Keyboard
-window.addEventListener('keydown', (e) => { keys[e.code] = true; });
-window.addEventListener('keyup', (e) => { keys[e.code] = false; });
-
-// On-screen WASD
-function bindHold(el, code) {
-  const down = (e) => { e.preventDefault(); keys[code] = true; };
-  const up = (e) => { e.preventDefault(); keys[code] = false; };
-  el.addEventListener('pointerdown', down);
-  el.addEventListener('pointerup', up);
-  el.addEventListener('pointerleave', up);
-  el.addEventListener('pointercancel', up);
-}
-document.querySelectorAll('.wasd button[data-key]').forEach((b) => bindHold(b, b.getAttribute('data-key')));
-document.querySelectorAll('.look button[data-look]').forEach((b) => {
-  const dir = b.getAttribute('data-look');
-  const down = (e) => { e.preventDefault(); lookHeld[dir] = 1; };
-  const up = (e) => { e.preventDefault(); lookHeld[dir] = 0; };
-  b.addEventListener('pointerdown', down);
-  b.addEventListener('pointerup', up);
-  b.addEventListener('pointerleave', up);
-  b.addEventListener('pointercancel', up);
-});
-
-let dragging = false, lx = 0, ly = 0;
-canvas.addEventListener('pointerdown', (e) => {
-  dragging = true; lx = e.clientX; ly = e.clientY;
-  pointer.x = (e.clientX / innerWidth) * 2 - 1;
-  pointer.y = -(e.clientY / innerHeight) * 2 + 1;
-  const cam = mode === 'fps' ? fpsCam : orbitCam;
-  raycaster.setFromCamera(pointer, cam);
-  const hits = raycaster.intersectObjects(npcs, true);
-  if (hits.length) {
-    let o = hits[0].object;
-    while (o.parent && !o.userData.name) o = o.parent;
-    if (o.userData && o.userData.name) selectNPC(o);
+  function makeHumanoid(color) {
+    var g = new THREE.Group();
+    var matB = new THREE.MeshStandardMaterial({ color: color, roughness: 0.55 });
+    var matS = new THREE.MeshStandardMaterial({ color: 0xe8c4a8, roughness: 0.45 });
+    var matL = new THREE.MeshStandardMaterial({ color: 0x2a3040, roughness: 0.7 });
+    [[-0.12, 0.35], [0.12, 0.35]].forEach(function (p) {
+      var leg = new THREE.Mesh(new THREE.CapsuleGeometry(0.09, 0.35, 3, 6), matL);
+      leg.position.set(p[0], p[1], 0); leg.castShadow = true; g.add(leg);
+    });
+    var torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.22, 0.4, 4, 8), matB);
+    torso.position.y = 0.95; torso.castShadow = true; g.add(torso);
+    [[-0.34, 0.95], [0.34, 0.95]].forEach(function (p) {
+      var arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.07, 0.32, 3, 6), matB);
+      arm.position.set(p[0], p[1], 0); arm.castShadow = true; g.add(arm);
+    });
+    var head = new THREE.Mesh(new THREE.SphereGeometry(0.18, 10, 10), matS);
+    head.position.y = 1.48; head.castShadow = true; g.add(head);
+    var eyeM = new THREE.MeshBasicMaterial({ color: 0x1a1a22 });
+    [[-0.06, 1.5, 0.15], [0.06, 1.5, 0.15]].forEach(function (p) {
+      var e = new THREE.Mesh(new THREE.SphereGeometry(0.03, 6, 6), eyeM);
+      e.position.set(p[0], p[1], p[2]); g.add(e);
+    });
+    return g;
   }
-});
-window.addEventListener('pointerup', () => { dragging = false; });
-canvas.addEventListener('pointermove', (e) => {
-  if (!dragging) return;
-  const dx = e.clientX - lx, dy = e.clientY - ly; lx = e.clientX; ly = e.clientY;
-  if (mode === 'orbit') {
-    const x = orbitCam.position.x, z = orbitCam.position.z;
-    const r = Math.hypot(x, z);
-    const th = Math.atan2(z, x) - dx * 0.005;
-    const y = Math.max(5, Math.min(18, orbitCam.position.y + dy * 0.02));
-    orbitCam.position.set(Math.cos(th) * r, y, Math.sin(th) * r);
-  } else {
-    camYaw -= dx * 0.004;
-    camPitch = Math.max(-1.1, Math.min(1.1, camPitch - dy * 0.004));
-  }
-});
 
-function updateNPCs(dt) {
-  const cam = mode === 'fps' ? fpsCam : orbitCam;
-  npcs.forEach((n) => {
-    const d = n.userData;
-    d.moving = false;
-    if (d.target) {
-      const p = n.position, t = d.target;
-      const ox = t.x - p.x, oz = t.z - p.z;
-      const dist = Math.hypot(ox, oz);
-      if (dist < 0.15) {
-        d.target = null;
-        if (d.command === 'work') d.status = 'Working at desk';
-        if (selected === n) document.getElementById('selStatus').textContent = d.status;
-      } else {
-        const sp = d.speed * dt;
-        p.x += (ox / dist) * sp; p.z += (oz / dist) * sp;
-        n.rotation.y = Math.atan2(ox, oz);
-        d.moving = true;
+  function makeLabel(name, role) {
+    var c2 = document.createElement('canvas');
+    c2.width = 256; c2.height = 64;
+    var cx = c2.getContext('2d');
+    cx.fillStyle = 'rgba(0,0,0,0.72)';
+    cx.beginPath();
+    if (cx.roundRect) cx.roundRect(0, 8, 256, 48, 8); else cx.rect(0, 8, 256, 48);
+    cx.fill();
+    cx.fillStyle = '#fff'; cx.font = 'bold 20px system-ui'; cx.textAlign = 'center';
+    cx.fillText(name.split(' ')[0], 128, 30);
+    cx.fillStyle = '#e8a045'; cx.font = '13px system-ui'; cx.fillText(role, 128, 48);
+    var label = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.15, 0.28),
+      new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c2), transparent: true })
+    );
+    label.position.y = 1.85;
+    return label;
+  }
+
+  var npcs = [];
+  var npcGroup = new THREE.Group();
+  scene.add(npcGroup);
+
+  function loadStaff(data) {
+    var root = new THREE.Group();
+    root.position.set(data.home[0], 0, data.home[1]);
+    var body = makeHumanoid(data.color);
+    root.add(body);
+    var label = makeLabel(data.name, data.role);
+    root.add(label);
+    var hit = new THREE.Mesh(
+      new THREE.CapsuleGeometry(0.45, 1.0, 2, 6),
+      new THREE.MeshBasicMaterial({ visible: false })
+    );
+    hit.position.y = 0.95;
+    root.add(hit);
+    root.userData = {
+      id: data.id, name: data.name, role: data.role, color: data.color, home: data.home, lines: data.lines,
+      status: 'Idle at desk', target: null, speed: 1.7, command: null, lineIdx: 0,
+      phase: Math.random() * 6, moving: false, mesh: body, label: label
+    };
+    npcGroup.add(root);
+    npcs.push(root);
+  }
+
+  var selected = null;
+  var raycaster = new THREE.Raycaster();
+  var pointer = new THREE.Vector2();
+
+  function log(msg) {
+    var el = document.getElementById('log');
+    el.innerHTML = '• ' + msg + '<br>' + el.innerHTML;
+  }
+  function showSpeech(who, text) {
+    document.getElementById('spWho').textContent = who;
+    document.getElementById('spText').textContent = text;
+    document.getElementById('speech').classList.add('show');
+    clearTimeout(showSpeech._t);
+    showSpeech._t = setTimeout(function () {
+      document.getElementById('speech').classList.remove('show');
+    }, 5000);
+  }
+  function selectNPC(npc) {
+    selected = npc;
+    var d = npc.userData;
+    document.getElementById('selected').classList.add('show');
+    document.getElementById('selName').textContent = d.name;
+    document.getElementById('selRole').textContent = d.role.toUpperCase();
+    document.getElementById('selStatus').textContent = d.status;
+    log('Selected ' + d.name);
+  }
+  function command(cmd) {
+    if (!selected) return;
+    var d = selected.userData;
+    d.command = cmd;
+    var spots = {
+      work: new THREE.Vector3(d.home[0], 0, d.home[1]),
+      meet: new THREE.Vector3((Math.random() - 0.5) * 2.5, 0, -3.2),
+      break: new THREE.Vector3(10, 0, 7.2),
+      report: new THREE.Vector3(-8, 0, 4.5)
+    };
+    if (cmd === 'talk') {
+      var line = d.lines[d.lineIdx++ % d.lines.length];
+      d.status = 'Speaking with founder';
+      document.getElementById('selStatus').textContent = d.status;
+      showSpeech(d.name + ' · ' + d.role, line);
+      log(d.name + ': ' + line);
+      return;
+    }
+    d.target = spots[cmd];
+    d.status = ({ work: 'Working at desk', meet: 'Heading to boardroom', break: 'On break', report: 'Preparing report' })[cmd];
+    document.getElementById('selStatus').textContent = d.status;
+    log('→ ' + d.name + ': ' + cmd);
+  }
+
+  document.querySelectorAll('[data-cmd]').forEach(function (b) {
+    b.onclick = function () { command(b.getAttribute('data-cmd')); };
+  });
+
+  function setMode(m) {
+    mode = m;
+    var pad = document.getElementById('pad');
+    if (m === 'fps') {
+      pad.classList.add('show');
+      fpsCam.position.set(0, 1.55, 7);
+      camYaw = Math.PI; camPitch = 0;
+      document.getElementById('hint').textContent = 'WASD pad · look pad · tap staff';
+      log('First-person');
+    } else {
+      pad.classList.remove('show');
+      document.getElementById('hint').textContent = 'Orbit: drag · tap staff';
+    }
+  }
+  document.getElementById('btnOrbit').onclick = function () { setMode('orbit'); };
+  document.getElementById('btnFPS').onclick = function () { setMode('fps'); };
+  document.getElementById('btnReset').onclick = function () {
+    npcs.forEach(function (n) {
+      n.position.set(n.userData.home[0], 0, n.userData.home[1]);
+      n.userData.target = null; n.userData.status = 'Idle at desk';
+      n.userData.command = null; n.userData.moving = false;
+    });
+    log('Floor reset');
+  };
+
+  window.addEventListener('keydown', function (e) { keys[e.code] = true; });
+  window.addEventListener('keyup', function (e) { keys[e.code] = false; });
+  function bindHold(el, code) {
+    function down(e) { e.preventDefault(); keys[code] = true; }
+    function up(e) { e.preventDefault(); keys[code] = false; }
+    el.addEventListener('pointerdown', down);
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointerleave', up);
+    el.addEventListener('pointercancel', up);
+  }
+  document.querySelectorAll('.wasd button[data-key]').forEach(function (b) {
+    bindHold(b, b.getAttribute('data-key'));
+  });
+  document.querySelectorAll('.look button[data-look]').forEach(function (b) {
+    var dir = b.getAttribute('data-look');
+    function down(e) { e.preventDefault(); lookHeld[dir] = 1; }
+    function up(e) { e.preventDefault(); lookHeld[dir] = 0; }
+    b.addEventListener('pointerdown', down);
+    b.addEventListener('pointerup', up);
+    b.addEventListener('pointerleave', up);
+    b.addEventListener('pointercancel', up);
+  });
+
+  var dragging = false, lx = 0, ly = 0;
+  canvas.addEventListener('pointerdown', function (e) {
+    dragging = true; lx = e.clientX; ly = e.clientY;
+    pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+    pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    var cam = mode === 'fps' ? fpsCam : orbitCam;
+    raycaster.setFromCamera(pointer, cam);
+    var hits = raycaster.intersectObjects(npcs, true);
+    if (hits.length) {
+      var o = hits[0].object;
+      while (o.parent && !o.userData.name) o = o.parent;
+      if (o.userData && o.userData.name) selectNPC(o);
+    }
+  });
+  window.addEventListener('pointerup', function () { dragging = false; });
+  canvas.addEventListener('pointermove', function (e) {
+    if (!dragging) return;
+    var dx = e.clientX - lx, dy = e.clientY - ly; lx = e.clientX; ly = e.clientY;
+    if (mode === 'orbit') {
+      var x = orbitCam.position.x, z = orbitCam.position.z;
+      var r = Math.hypot(x, z);
+      var th = Math.atan2(z, x) - dx * 0.005;
+      var y = Math.max(5, Math.min(18, orbitCam.position.y + dy * 0.02));
+      orbitCam.position.set(Math.cos(th) * r, y, Math.sin(th) * r);
+    } else {
+      camYaw -= dx * 0.004;
+      camPitch = Math.max(-1.1, Math.min(1.1, camPitch - dy * 0.004));
+    }
+  });
+
+  function updateNPCs(dt) {
+    var cam = mode === 'fps' ? fpsCam : orbitCam;
+    npcs.forEach(function (n) {
+      var d = n.userData;
+      d.moving = false;
+      if (d.target) {
+        var p = n.position, t = d.target;
+        var ox = t.x - p.x, oz = t.z - p.z;
+        var dist = Math.hypot(ox, oz);
+        if (dist < 0.15) {
+          d.target = null;
+          if (d.command === 'work') d.status = 'Working at desk';
+          if (selected === n) document.getElementById('selStatus').textContent = d.status;
+        } else {
+          var sp = d.speed * dt;
+          p.x += (ox / dist) * sp; p.z += (oz / dist) * sp;
+          n.rotation.y = Math.atan2(ox, oz);
+          d.moving = true;
+        }
       }
+      d.phase += dt * (d.moving ? 10 : 2);
+      if (d.mesh) d.mesh.position.y = Math.sin(d.phase) * (d.moving ? 0.04 : 0.012);
+      if (d.label) d.label.lookAt(cam.position);
+    });
+  }
+  function updateFPS(dt) {
+    if (mode !== 'fps') return;
+    var lookSp = 1.6 * dt;
+    if (lookHeld.left) camYaw += lookSp;
+    if (lookHeld.right) camYaw -= lookSp;
+    if (lookHeld.up) camPitch = Math.min(1.1, camPitch + lookSp);
+    if (lookHeld.down) camPitch = Math.max(-1.1, camPitch - lookSp);
+    var sp = keys['ShiftLeft'] ? 5.2 : 2.9;
+    var f = new THREE.Vector3(-Math.sin(camYaw), 0, -Math.cos(camYaw));
+    var r = new THREE.Vector3(Math.cos(camYaw), 0, -Math.sin(camYaw));
+    var m = new THREE.Vector3();
+    if (keys['KeyW']) m.add(f);
+    if (keys['KeyS']) m.sub(f);
+    if (keys['KeyD']) m.add(r);
+    if (keys['KeyA']) m.sub(r);
+    if (m.lengthSq()) {
+      m.normalize().multiplyScalar(sp * dt);
+      fpsCam.position.add(m);
+      fpsCam.position.x = Math.max(-13, Math.min(13, fpsCam.position.x));
+      fpsCam.position.z = Math.max(-9, Math.min(9, fpsCam.position.z));
     }
-    d.phase += dt * (d.moving ? 10 : 2);
-    if (d.mesh) {
-      d.mesh.position.y = Math.sin(d.phase) * (d.moving ? 0.04 : 0.015);
-    }
-    if (d.label) d.label.lookAt(cam.position);
+    fpsCam.position.y = 1.55;
+    fpsCam.rotation.order = 'YXZ';
+    fpsCam.rotation.y = camYaw;
+    fpsCam.rotation.x = camPitch;
+  }
+
+  var last = performance.now();
+  function frame(now) {
+    var dt = Math.min(0.05, (now - last) / 1000); last = now;
+    updateNPCs(dt); updateFPS(dt);
+    var cam = mode === 'fps' ? fpsCam : orbitCam;
+    if (mode === 'orbit') orbitCam.lookAt(0, 0.4, 0);
+    renderer.render(scene, cam);
+    requestAnimationFrame(frame);
+  }
+  window.addEventListener('resize', function () {
+    orbitCam.aspect = fpsCam.aspect = window.innerWidth / window.innerHeight;
+    orbitCam.updateProjectionMatrix(); fpsCam.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
   });
-}
 
-function updateFPS(dt) {
-  if (mode !== 'fps') return;
-  // Look pad
-  const lookSp = 1.6 * dt;
-  if (lookHeld.left) camYaw += lookSp;
-  if (lookHeld.right) camYaw -= lookSp;
-  if (lookHeld.up) camPitch = Math.min(1.1, camPitch + lookSp);
-  if (lookHeld.down) camPitch = Math.max(-1.1, camPitch - lookSp);
-
-  const sp = keys['ShiftLeft'] ? 5.2 : 2.9;
-  const f = new THREE.Vector3(-Math.sin(camYaw), 0, -Math.cos(camYaw));
-  const r = new THREE.Vector3(Math.cos(camYaw), 0, -Math.sin(camYaw));
-  const m = new THREE.Vector3();
-  if (keys['KeyW']) m.add(f);
-  if (keys['KeyS']) m.sub(f);
-  if (keys['KeyD']) m.add(r);
-  if (keys['KeyA']) m.sub(r);
-  if (m.lengthSq()) {
-    m.normalize().multiplyScalar(sp * dt);
-    fpsCam.position.add(m);
-    fpsCam.position.x = THREE.MathUtils.clamp(fpsCam.position.x, -13, 13);
-    fpsCam.position.z = THREE.MathUtils.clamp(fpsCam.position.z, -9, 9);
+  document.getElementById('hint').textContent = 'Engine ready — Enter the office';
+  function enterOffice() {
+    document.getElementById('boot').classList.add('hide');
+    ROSTER.forEach(loadStaff);
+    log('Floor live — 8 staff');
+    document.getElementById('hint').textContent = 'Tap a teammate · Orbit or FPS';
+    requestAnimationFrame(frame);
   }
-  fpsCam.position.y = 1.55;
-  fpsCam.rotation.order = 'YXZ';
-  fpsCam.rotation.y = camYaw;
-  fpsCam.rotation.x = camPitch;
-}
-
-let last = performance.now();
-function frame(now) {
-  const dt = Math.min(0.05, (now - last) / 1000); last = now;
-  updateNPCs(dt); updateFPS(dt);
-  const cam = mode === 'fps' ? fpsCam : orbitCam;
-  if (mode === 'orbit') orbitCam.lookAt(0, 0.4, 0);
-  renderer.render(scene, cam);
-  requestAnimationFrame(frame);
-}
-window.addEventListener('resize', () => {
-  orbitCam.aspect = fpsCam.aspect = innerWidth / innerHeight;
-  orbitCam.updateProjectionMatrix(); fpsCam.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight);
-});
-
-document.getElementById('btnEnter').onclick = async () => {
-  document.getElementById('boot').classList.add('hide');
-  log('Loading office…');
-  await placeFurniture();
-  log('Loading staff meshes…');
-  for (const r of ROSTER) {
-    await loadStaff(r);
+  document.getElementById('btnEnter').onclick = enterOffice;
+  window.__cubitEnterOffice = enterOffice;
+  } catch (e) {
+    showErr('Init error: ' + e + (e.stack ? '\n' + e.stack : ''));
   }
-  log('Floor live — 8 mesh NPCs');
-  document.getElementById('hint').textContent = 'Tap a teammate · Orbit or FPS';
-  requestAnimationFrame(frame);
-};
+})();
   </script>
 </body>
 </html>

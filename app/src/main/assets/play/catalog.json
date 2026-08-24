@@ -5,6 +5,15 @@
   "engine": "cubit-engine",
   "games": [
     {
+      "id": "studios",
+      "title": "Cubit Studios (Proof)",
+      "version": "0.1.0",
+      "path": "games/studios/index.html",
+      "profile": "n64-class",
+      "publisher": "Cubit Studios",
+      "description": "Director prompts \u00b7 actor marks \u00b7 virtual cam capture"
+    },
+    {
       "id": "hq",
       "title": "Cubit HQ",
       "version": "0.2.0",

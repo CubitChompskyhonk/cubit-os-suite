@@ -26,14 +26,19 @@
   </style>
 </head>
 <body>
-  <div class="brand">CUBIT SUITE · OS v2.2.1</div>
+  <div class="brand">CUBIT SUITE · OS v2.3.0</div>
   <h1>Head Offices</h1>
   <p class="sub">Suite home. <strong>Cubit Play</strong> is the virtual console for first-party games.</p>
   <div class="grid">
     <button type="button" class="tile play" onclick="openMod('play')">
       <h2>Cubit Play</h2>
-      <p>Virtual console · N64-class profile · Under the Glow</p>
+      <p>Virtual console · Cubit HQ · Under the Glow · FPS</p>
       <span class="tag">CONSOLE · FIRST-PARTY</span>
+    </button>
+    <button type="button" class="tile" onclick="openMod('ontrac')">
+      <h2>OnTrac</h2>
+      <p>Tax recovery pilot · consent · one Approve</p>
+      <span class="tag">MISSION · PILOT</span>
     </button>
     <button type="button" class="tile" onclick="openMod('assimilate')">
       <h2>Assimilate</h2>
@@ -74,6 +79,8 @@
       } catch (e) { log('bridge ' + e); }
       // Web fallback
       if (id === 'play') location.href = 'play/index.html';
+      else if (id === 'ontrac') location.href = 'ontrac/index.html';
+      else if (id === 'hq') location.href = 'play/games/hq/index.html';
       else if (id === 'labs') location.href = 'labs/experience.html';
       else log('Open ' + id + ' (install APK for modules)');
     }

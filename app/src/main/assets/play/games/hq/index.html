@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>Cubit HQ</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{width:100%;height:100%;overflow:hidden;background:#07090c;font-family:system-ui,sans-serif;color:#eef2f6}
+    #c{display:block;width:100%;height:100%;touch-action:none}
+    #boot{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#152030 0%,#07090c 70%);z-index:20;text-align:center;padding:24px}
+    #boot.hide{display:none}
+    .logo{font-size:.7rem;letter-spacing:.2em;color:#e8a045;font-weight:800;margin-bottom:8px}
+    #boot h1{font-size:1.8rem;margin-bottom:8px}
+    #boot p{color:#8b97a8;max-width:360px;margin-bottom:20px;font-size:.95rem}
+    #boot button{border:none;border-radius:12px;padding:14px 28px;font-weight:800;font-size:1rem;background:linear-gradient(180deg,#f0b45a,#d4892a);color:#120c04;cursor:pointer}
+    #ui{position:absolute;left:10px;top:10px;right:10px;max-width:400px;display:flex;flex-direction:column;gap:8px;pointer-events:none;z-index:5}
+    .panel{pointer-events:auto;background:rgba(10,14,20,.92);border:1px solid #2a3444;border-radius:12px;padding:12px 14px}
+    .brand{font-size:.62rem;letter-spacing:.16em;color:#e8a045;font-weight:800}
+    h2{font-size:1rem;margin:4px 0 6px}
+    .muted{color:#8b97a8;font-size:.78rem}
+    .row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+    button.ui{border:none;border-radius:8px;padding:8px 11px;font-weight:700;font-size:.78rem;cursor:pointer;background:#3d7eb0;color:#061018}
+    button.ui.sec{background:#1a222c;color:#c5d0dc;border:1px solid #2a3444}
+    button.ui.cmd{background:#1e3d2e;color:#9dccb0}
+    #selected{display:none}#selected.show{display:block}
+    #portrait{width:56px;height:56px;border-radius:8px;object-fit:cover;image-rendering:pixelated;border:2px solid #e8a045;float:left;margin-right:10px}
+    #log{position:absolute;right:10px;bottom:48px;width:min(340px,92vw);max-height:120px;overflow:auto;font-size:.72rem;color:#9aa8b8;background:rgba(10,14,20,.88);border-radius:10px;padding:8px 10px;border:1px solid #2a3444;z-index:5;pointer-events:none}
+    #hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);z-index:5;font-size:.72rem;color:#8b97a8;background:rgba(0,0,0,.55);padding:6px 12px;border-radius:16px;white-space:nowrap;pointer-events:none}
+    #speech{display:none;position:absolute;left:50%;bottom:80px;transform:translateX(-50%);max-width:min(420px,90vw);background:rgba(12,16,22,.95);border:1px solid #e8a045;border-radius:12px;padding:12px 16px;z-index:8}
+    #speech.show{display:block}
+    #speech .who{color:#e8a045;font-weight:800;font-size:.75rem;margin-bottom:4px}
+  </style>
+</head>
+<body>
+  <div id="boot">
+    <div class="logo">CUBIT PLAY · HEAD OFFICES</div>
+    <h1>Cubit Systems HQ</h1>
+    <p>PSX staff sprites with walk animation · Sims commands · first-person · OS suite module</p>
+    <button type="button" id="btnEnter">Enter the office</button>
+  </div>
+  <canvas id="c"></canvas>
+  <div id="ui">
+    <div class="panel">
+      <div class="brand">CUBIT HQ · LIVE FLOOR</div>
+      <h2>Head Offices</h2>
+      <p class="muted">Click staff · commands · WASD in FPS</p>
+      <div class="row">
+        <button type="button" class="ui" id="btnOrbit">Orbit</button>
+        <button type="button" class="ui sec" id="btnFPS">First person</button>
+        <button type="button" class="ui sec" id="btnReset">Reset floor</button>
+      </div>
+    </div>
+    <div class="panel" id="selected">
+      <img id="portrait" alt="" />
+      <div class="brand" id="selRole">ROLE</div>
+      <h2 id="selName" style="margin-top:2px">—</h2>
+      <p class="muted" id="selStatus" style="clear:both;padding-top:6px">Idle</p>
+      <div class="row">
+        <button type="button" class="ui cmd" data-cmd="work">Work</button>
+        <button type="button" class="ui cmd" data-cmd="meet">Boardroom</button>
+        <button type="button" class="ui cmd" data-cmd="break">Break</button>
+        <button type="button" class="ui cmd" data-cmd="report">Report</button>
+        <button type="button" class="ui cmd" data-cmd="talk">Talk</button>
+      </div>
+    </div>
+  </div>
+  <div id="speech"><div class="who" id="spWho"></div><div id="spText"></div></div>
+  <div id="log"></div>
+  <div id="hint">Enter the office</div>
+  <script type="module">
+import * as THREE from './src/three.module.js';
+import { GLTFLoader } from './src/jsm/loaders/GLTFLoader.js';
+
+const ROSTER = [
+  { id:'alex', name:'Alex Rivera', role:'Chief of Staff', tex:'assets/chars/Character_01.png', home:[-8,4.6],
+    lines:['Board pulse is green. Customer zero is the gate.','One Approve. One result.','I protect your attention. The team executes.']},
+  { id:'morgan', name:'Morgan Ellis', role:'Software Engineer', tex:'assets/chars/Character_02.png', home:[-4,4.6],
+    lines:['HQ is Three.js + GLBs + PSX sprite walk.','FPS and orbit share one NPC brain.','FBX skinning waits on Blender convert.']},
+  { id:'priya', name:'Priya Singh', role:'Tax & Compliance', tex:'assets/chars/Character_03.png', home:[0,4.6],
+    lines:['Level 1 disclosure. Level 2 changes.','OnTrac never stores CRA passwords.','Refund awareness is respect.']},
+  { id:'kai', name:'Kai Nakamura', role:'Product Testing', tex:'assets/chars/Character_04.png', home:[4,4.6],
+    lines:['First screen of options is a fail.','Sim customers passed. Founder trial is real.','Half measures are incomplete stages.']},
+  { id:'elena', name:'Elena Voss', role:'Marketing', tex:'assets/chars/Character_05.png', home:[8,4.6],
+    lines:['Celebrate in private. Truth in public.','Pilot is the word.','Dignity over hype.']},
+  { id:'jordan', name:'Jordan Hale', role:'Finance', tex:'assets/chars/Character_06.png', home:[-7,-3.5],
+    lines:['Fun budget approved. Watch the runway.','No paid launch on a blank first minute.','I track credits. You track mission.']},
+  { id:'devon', name:'Devon Park', role:'IT / Security', tex:'assets/chars/Character_07.png', home:[7,-3.5],
+    lines:['Local assets only. Good.','Encrypt the vault on the real path.','Assume leak if it is not on-device.']},
+  { id:'taylor', name:'Taylor Kim', role:'Knowledge', tex:'assets/chars/Character_08.png', home:[2,-7],
+    lines:['This room is a navigable artifact.','Doctrine in docs. Culture on the floor.','I file what customer zero teaches.']},
+];
+
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x151c28);
+scene.fog = new THREE.Fog(0x151c28, 16, 40);
+const orbitCam = new THREE.PerspectiveCamera(50, innerWidth/innerHeight, 0.1, 80);
+orbitCam.position.set(11,13,11);
+const fpsCam = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 80);
+fpsCam.position.set(0,1.55,7);
+let mode = 'orbit', camYaw = Math.PI, camPitch = 0;
+const keys = {};
+scene.add(new THREE.AmbientLight(0x9aabbc, 0.6));
+const sun = new THREE.DirectionalLight(0xfff2dd, 1.05);
+sun.position.set(6,14,5); sun.castShadow = true; scene.add(sun);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(28,20), new THREE.MeshStandardMaterial({color:0x3a4558, roughness:0.15}));
+floor.rotation.x = -Math.PI/2; floor.receiveShadow = true; scene.add(floor);
+function wall(w,h,d,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color:0x2a3344,roughness:0.88}));m.position.set(x,y,z);m.castShadow=true;scene.add(m)}
+wall(28,3.2,0.3,0,1.6,-10); wall(28,3.2,0.3,0,1.6,10); wall(0.3,3.2,20,-14,1.6,0); wall(0.3,3.2,20,14,1.6,0);
+const glass=new THREE.Mesh(new THREE.BoxGeometry(0.06,2.5,7),new THREE.MeshStandardMaterial({color:0x88b0d0,transparent:true,opacity:0.22,metalness:0.95}));
+glass.position.set(-5,1.25,-2); scene.add(glass);
+
+const loader = new GLTFLoader();
+const furn = new THREE.Group(); scene.add(furn);
+function loadGLB(path,pos,rotY=0){
+  return new Promise(res=>{
+    loader.load(path,g=>{const o=g.scene;o.traverse(c=>{if(c.isMesh){c.castShadow=true;c.receiveShadow=true}});o.position.set(...pos);o.rotation.y=rotY;furn.add(o);res(o)},undefined,()=>{
+      const b=new THREE.Mesh(new THREE.BoxGeometry(1.2,0.6,0.6),new THREE.MeshStandardMaterial({color:0x556677}));b.position.set(pos[0],0.3,pos[2]);furn.add(b);res(b);
+    });
+  });
+}
+async function placeFurniture(){
+  const items=[
+    ['assets/furniture/desk1.glb',[-8,0,4],0],['assets/furniture/desk1.glb',[-4,0,4],0],['assets/furniture/desk2.glb',[0,0,4],0],
+    ['assets/furniture/desk1.glb',[4,0,4],0],['assets/furniture/desk2.glb',[8,0,4],0],
+    ['assets/furniture/office_chair_blue.glb',[-8,0,5.3],Math.PI],['assets/furniture/office_chair_black.glb',[-4,0,5.3],Math.PI],
+    ['assets/furniture/office_chair_blue.glb',[0,0,5.3],Math.PI],['assets/furniture/office_chair_black.glb',[4,0,5.3],Math.PI],
+    ['assets/furniture/office_chair_blue.glb',[8,0,5.3],Math.PI],
+    ['assets/furniture/conference_desk.glb',[0,0,-2.5],0],
+    ['assets/furniture/conference_chair.glb',[-2,0,-4],0],['assets/furniture/conference_chair.glb',[0,0,-4],0],['assets/furniture/conference_chair.glb',[2,0,-4],0],
+    ['assets/furniture/book_case.glb',[12.5,0,-7],-Math.PI/2],['assets/furniture/couch_blue.glb',[10,0,7.5],Math.PI],
+    ['assets/furniture/file_cabinet_small.glb',[-12.5,0,6],Math.PI/2],
+    ['assets/furniture/computer_monitor.glb',[-8,0.72,3.55],0],['assets/furniture/computer_monitor.glb',[-4,0.72,3.55],0],
+    ['assets/furniture/computer_monitor.glb',[0,0.72,3.55],0],['assets/furniture/computer_monitor.glb',[4,0.72,3.55],0],['assets/furniture/computer_monitor.glb',[8,0.72,3.55],0],
+  ];
+  for (const [p,pos,r] of items) await loadGLB(p,pos,r);
+}
+
+const texLoader = new THREE.TextureLoader();
+const npcs = [];
+const npcGroup = new THREE.Group(); scene.add(npcGroup);
+
+function makeStaff(data){
+  const g = new THREE.Group();
+  const tex = texLoader.load(data.tex);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.magFilter = THREE.NearestFilter;
+  tex.minFilter = THREE.NearestFilter;
+  const mat = new THREE.MeshBasicMaterial({map:tex,transparent:true,alphaTest:0.12,side:THREE.DoubleSide});
+  const sprite = new THREE.Mesh(new THREE.PlaneGeometry(1.15,1.7), mat);
+  sprite.position.y = 0.85; g.add(sprite);
+  const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.35,16), new THREE.MeshBasicMaterial({color:0x000,transparent:true,opacity:0.35}));
+  shadow.rotation.x = -Math.PI/2; shadow.position.y = 0.02; g.add(shadow);
+  const c2 = document.createElement('canvas'); c2.width=256; c2.height=64;
+  const cx = c2.getContext('2d');
+  cx.fillStyle='rgba(0,0,0,0.7)'; cx.beginPath(); cx.roundRect(0,8,256,48,8); cx.fill();
+  cx.fillStyle='#fff'; cx.font='bold 20px system-ui'; cx.textAlign='center'; cx.fillText(data.name.split(' ')[0],128,30);
+  cx.fillStyle='#e8a045'; cx.font='14px system-ui'; cx.fillText(data.role,128,48);
+  const label = new THREE.Mesh(new THREE.PlaneGeometry(1.3,0.32), new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c2),transparent:true}));
+  label.position.y=1.95; g.add(label);
+  g.position.set(data.home[0],0,data.home[1]);
+  g.userData = {...data, status:'Idle at desk', target:null, speed:1.85, command:null, lineIdx:0, sprite, shadow, label, phase:Math.random()*6, moving:false};
+  npcGroup.add(g); npcs.push(g); return g;
+}
+ROSTER.forEach(makeStaff);
+
+let selected=null;
+const raycaster=new THREE.Raycaster(); const pointer=new THREE.Vector2();
+function log(msg){const el=document.getElementById('log'); el.innerHTML='• '+msg+'<br>'+el.innerHTML}
+function showSpeech(who,text){document.getElementById('spWho').textContent=who;document.getElementById('spText').textContent=text;document.getElementById('speech').classList.add('show');clearTimeout(showSpeech._t);showSpeech._t=setTimeout(()=>document.getElementById('speech').classList.remove('show'),5500)}
+function selectNPC(npc){selected=npc;const d=npc.userData;document.getElementById('selected').classList.add('show');document.getElementById('selName').textContent=d.name;document.getElementById('selRole').textContent=d.role.toUpperCase();document.getElementById('selStatus').textContent=d.status;document.getElementById('portrait').src=d.tex;log('Selected '+d.name)}
+function command(cmd){
+  if(!selected)return; const d=selected.userData; d.command=cmd;
+  const spots={work:new THREE.Vector3(d.home[0],0,d.home[1]),meet:new THREE.Vector3((Math.random()-0.5)*2.5,0,-3.2),break:new THREE.Vector3(10,0,7.2),report:new THREE.Vector3(-8,0,4.5)};
+  if(cmd==='talk'){const line=d.lines[d.lineIdx++%d.lines.length];d.status='Speaking with founder';document.getElementById('selStatus').textContent=d.status;showSpeech(d.name+' · '+d.role,line);log(d.name+': '+line);return}
+  d.target=spots[cmd]; d.status=({work:'Working at desk',meet:'Heading to boardroom',break:'On break',report:'Preparing report'})[cmd];document.getElementById('selStatus').textContent=d.status;log('→ '+d.name+': '+cmd);
+}
+document.querySelectorAll('[data-cmd]').forEach(b=>b.onclick=()=>command(b.getAttribute('data-cmd')));
+document.getElementById('btnOrbit').onclick=()=>{mode='orbit';document.getElementById('hint').textContent='Orbit: drag · click staff'};
+document.getElementById('btnFPS').onclick=()=>{mode='fps';fpsCam.position.set(0,1.55,7);camYaw=Math.PI;camPitch=0;document.getElementById('hint').textContent='FPS: WASD · mouse look';log('First-person')};
+document.getElementById('btnReset').onclick=()=>{npcs.forEach(n=>{n.position.set(n.userData.home[0],0,n.userData.home[1]);n.userData.target=null;n.userData.status='Idle at desk';n.userData.command=null;n.userData.moving=false});log('Floor reset')};
+
+let dragging=false,lx=0,ly=0;
+canvas.addEventListener('pointerdown',e=>{
+  dragging=true;lx=e.clientX;ly=e.clientY;
+  pointer.x=(e.clientX/innerWidth)*2-1; pointer.y=-(e.clientY/innerHeight)*2+1;
+  const cam=mode==='fps'?fpsCam:orbitCam; raycaster.setFromCamera(pointer,cam);
+  const hits=raycaster.intersectObjects(npcs,true);
+  if(hits.length){let o=hits[0].object;while(o.parent&&!o.userData.name)o=o.parent;if(o.userData&&o.userData.name)selectNPC(o)}
+});
+window.addEventListener('pointerup',()=>dragging=false);
+canvas.addEventListener('pointermove',e=>{
+  if(!dragging)return; const dx=e.clientX-lx,dy=e.clientY-ly;lx=e.clientX;ly=e.clientY;
+  if(mode==='orbit'){const x=orbitCam.position.x,z=orbitCam.position.z;const r=Math.hypot(x,z);let th=Math.atan2(z,x)-dx*0.005;let y=Math.max(5,Math.min(18,orbitCam.position.y+dy*0.02));orbitCam.position.set(Math.cos(th)*r,y,Math.sin(th)*r)}
+  else{camYaw-=dx*0.004;camPitch=Math.max(-1.1,Math.min(1.1,camPitch-dy*0.004))}
+});
+window.addEventListener('keydown',e=>keys[e.code]=true); window.addEventListener('keyup',e=>keys[e.code]=false);
+
+/** PSX sprite animation: bob + stride lean + shadow pulse while moving */
+function updateNPCs(dt){
+  const cam=mode==='fps'?fpsCam:orbitCam;
+  npcs.forEach(n=>{
+    const d=n.userData;
+    d.moving=false;
+    if(d.target){
+      const p=n.position,t=d.target; const ox=t.x-p.x,oz=t.z-p.z; const dist=Math.hypot(ox,oz);
+      if(dist<0.12){d.target=null; if(d.command==='work')d.status='Working at desk'; if(selected===n)document.getElementById('selStatus').textContent=d.status}
+      else{const sp=d.speed*dt; p.x+=(ox/dist)*sp; p.z+=(oz/dist)*sp; d.moving=true}
+    }
+    // Animation phase
+    const rate = d.moving ? 9 : 2.2;
+    d.phase += dt * rate;
+    const bobAmp = d.moving ? 0.07 : 0.02;
+    const leanAmp = d.moving ? 0.08 : 0.015;
+    d.sprite.position.y = 0.85 + Math.sin(d.phase) * bobAmp;
+    d.sprite.rotation.z = Math.sin(d.phase * 0.5) * leanAmp;
+    // Squash-stretch on stride (PSX juice)
+    const sq = d.moving ? 1 + Math.sin(d.phase) * 0.04 : 1;
+    d.sprite.scale.set(1/sq, sq, 1);
+    d.shadow.material.opacity = d.moving ? 0.28 + Math.sin(d.phase)*0.06 : 0.35;
+    d.shadow.scale.setScalar(d.moving ? 0.9 + Math.sin(d.phase)*0.08 : 1);
+    // Billboard
+    const dx=cam.position.x-n.position.x, dz=cam.position.z-n.position.z;
+    d.sprite.rotation.y = Math.atan2(dx,dz);
+    d.label.lookAt(cam.position);
+  });
+}
+function updateFPS(dt){
+  if(mode!=='fps')return;
+  const sp=keys['ShiftLeft']?5.5:3.0;
+  const f=new THREE.Vector3(-Math.sin(camYaw),0,-Math.cos(camYaw));
+  const r=new THREE.Vector3(Math.cos(camYaw),0,-Math.sin(camYaw));
+  const m=new THREE.Vector3();
+  if(keys['KeyW'])m.add(f); if(keys['KeyS'])m.sub(f); if(keys['KeyD'])m.add(r); if(keys['KeyA'])m.sub(r);
+  if(m.lengthSq()){m.normalize().multiplyScalar(sp*dt); fpsCam.position.add(m);
+    fpsCam.position.x=THREE.MathUtils.clamp(fpsCam.position.x,-13,13);
+    fpsCam.position.z=THREE.MathUtils.clamp(fpsCam.position.z,-9,9)}
+  fpsCam.position.y=1.55; fpsCam.rotation.order='YXZ'; fpsCam.rotation.y=camYaw; fpsCam.rotation.x=camPitch;
+}
+let last=performance.now();
+function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;updateNPCs(dt);updateFPS(dt);const cam=mode==='fps'?fpsCam:orbitCam;if(mode==='orbit')orbitCam.lookAt(0,0.4,0);renderer.render(scene,cam);requestAnimationFrame(frame)}
+window.addEventListener('resize',()=>{orbitCam.aspect=fpsCam.aspect=innerWidth/innerHeight;orbitCam.updateProjectionMatrix();fpsCam.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+document.getElementById('btnEnter').onclick=async()=>{document.getElementById('boot').classList.add('hide');log('Loading Head Offices…');await placeFurniture();log('Floor live — PSX walk anim on');document.getElementById('hint').textContent='Click a teammate · Orbit or FPS';requestAnimationFrame(frame)};
+  </script>
+</body>
+</html>

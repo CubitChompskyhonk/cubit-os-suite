@@ -25,6 +25,7 @@
   <h1>Console menu</h1>
   <p class="sub">Cubit HQ · FPS · Glow · Maze · catalog live</p>
   <div class="stack">
+    <button type="button" class="primary" id="btnStudios">Cubit Studios</button>
     <button type="button" class="primary" id="btnHq">Cubit HQ</button>
     <button type="button" class="primary" id="btnTank">Cubit FPS</button>
     <button type="button" class="primary" id="btnGlow3d">Under the Glow 3D</button>
@@ -51,6 +52,7 @@
     var el = document.getElementById(id);
     if (el) el.addEventListener('click', function (e) { e.preventDefault(); fn(); });
   }
+  bind('btnStudios', function () { openNative('studios', 'games/studios/index.html'); });
   bind('btnHq', function () { openNative('hq', 'games/hq/index.html'); });
   bind('btnTank', function () { openNative('tank-wars', 'games/tank-wars/index.html'); });
   bind('btnGlow3d', function () { openNative('glow3d', 'games/glow3d/index.html'); });

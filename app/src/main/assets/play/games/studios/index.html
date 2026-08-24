@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Cubit Studios · Proof</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{width:100%;height:100%;overflow:hidden;background:#0a0c10;font-family:system-ui,sans-serif;color:#eef2f6;touch-action:none}
+    #c{display:block;width:100%;height:100%}
+    #boot{position:absolute;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;background:radial-gradient(ellipse at center,#1a1520 0%,#0a0c10 70%)}
+    #boot.hide{display:none}
+    .logo{font-size:.7rem;letter-spacing:.2em;color:#e07090;font-weight:800}
+    #boot h1{font-size:1.6rem;margin:10px 0}
+    #boot p{color:#8b97a8;max-width:380px;margin-bottom:18px;line-height:1.45;font-size:.95rem}
+    #boot button{border:none;border-radius:12px;padding:14px 28px;font-weight:800;background:linear-gradient(180deg,#e07090,#a04060);color:#fff}
+    #top{position:absolute;left:10px;top:10px;right:10px;z-index:5;pointer-events:none;display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
+    .panel{pointer-events:auto;background:rgba(12,14,20,.92);border:1px solid #2a3142;border-radius:12px;padding:10px 12px;max-width:min(420px,96vw)}
+    .brand{font-size:.58rem;letter-spacing:.14em;color:#e07090;font-weight:800}
+    h2{font-size:.95rem;margin:4px 0}
+    .muted{color:#8b97a8;font-size:.72rem;line-height:1.35}
+    .row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+    button.ui{border:none;border-radius:8px;padding:8px 10px;font-weight:700;font-size:.72rem;background:#5b3a5a;color:#f0e0ea}
+    button.ui.sec{background:#1a222c;color:#c5d0dc;border:1px solid #2a3444}
+    button.ui.rec{background:#8b2030;color:#fff}
+    button.ui.rec.on{background:#e04050;animation:pulse 1s infinite}
+    @keyframes pulse{50%{opacity:.75}}
+    #director{width:100%;margin-top:8px}
+    #director input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #3a3142;background:#12151c;color:#eef2f6;font-size:.85rem}
+    #director .hint{font-size:.65rem;color:#6a7585;margin-top:4px}
+    #log{position:absolute;right:10px;bottom:120px;width:min(300px,42vw);max-height:140px;overflow:auto;font-size:.68rem;color:#9aa8b8;background:rgba(10,14,20,.88);border-radius:8px;padding:8px;border:1px solid #2a3444;z-index:5;pointer-events:none}
+    #camBadge{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:6;font-size:.65rem;letter-spacing:.12em;color:#e07090;background:rgba(0,0,0,.55);padding:4px 12px;border-radius:12px;pointer-events:none}
+    #hint{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);z-index:6;font-size:.7rem;color:#8b97a8;background:rgba(0,0,0,.5);padding:4px 10px;border-radius:12px;pointer-events:none}
+    #pad{display:none;position:absolute;left:0;right:0;bottom:0;height:150px;z-index:12;pointer-events:none}
+    #pad.show{display:block}
+    .wasd{position:absolute;left:12px;bottom:12px;width:140px;height:140px}
+    .look{position:absolute;right:12px;bottom:12px;width:140px;height:140px}
+    .wasd button,.look button{position:absolute;width:42px;height:42px;border:1px solid #3a4558;border-radius:10px;background:rgba(20,28,40,.9);color:#eef2f6;font-weight:800;font-size:.8rem;pointer-events:auto}
+    .wasd .w{left:49px;top:0}.wasd .a{left:0;top:49px}.wasd .s{left:49px;top:49px}.wasd .d{left:98px;top:49px}
+    .look .u{left:49px;top:0}.look .l{left:0;top:49px}.look .r{left:98px;top:49px}.look .dn{left:49px;top:49px}
+  </style>
+</head>
+<body>
+  <div id="boot">
+    <div class="logo">CUBIT STUDIOS · PROOF v0.1</div>
+    <h1>Virtual set · Director mode</h1>
+    <p>HQ floor as Stage A. Text-direct actors. Virtual camera. Capture the take. Xavier / Toon Twister lineage — cutscene-quality direction in-engine.</p>
+    <button type="button" id="btnEnter" onclick="if(window.__studiosEnter)window.__studiosEnter()">Open Stage A</button>
+  </div>
+  <canvas id="c"></canvas>
+  <div id="camBadge">CAM · ORBIT</div>
+  <div id="top">
+    <div class="panel">
+      <div class="brand">CUBIT STUDIOS</div>
+      <h2>Director desk</h2>
+      <p class="muted">Prove: commands to actors · virtual cam · record take</p>
+      <div class="row">
+        <button type="button" class="ui sec" id="btnOrbit">Orbit cam</button>
+        <button type="button" class="ui sec" id="btnFilm">Film cam</button>
+        <button type="button" class="ui sec" id="btnFPS">Walk set</button>
+        <button type="button" class="ui rec" id="btnRec">● Record</button>
+      </div>
+      <div id="director">
+        <input id="prompt" type="text" placeholder='e.g. alex walk to boardroom · morgan face camera · all gather' autocomplete="off" />
+        <div class="hint">Actors: alex morgan priya kai elena jordan devon taylor · verbs: walk face wave gather idle talk</div>
+      </div>
+    </div>
+  </div>
+  <div id="log"></div>
+  <div id="pad">
+    <div class="wasd">
+      <button type="button" class="w" data-key="KeyW">W</button>
+      <button type="button" class="a" data-key="KeyA">A</button>
+      <button type="button" class="s" data-key="KeyS">S</button>
+      <button type="button" class="d" data-key="KeyD">D</button>
+    </div>
+    <div class="look">
+      <button type="button" class="u" data-look="up">▲</button>
+      <button type="button" class="l" data-look="left">◀</button>
+      <button type="button" class="r" data-look="right">▶</button>
+      <button type="button" class="dn" data-look="down">▼</button>
+    </div>
+  </div>
+  <div id="hint">Loading…</div>
+  <script src="./src/three.min.js"></script>
+  <script>
+(function () {
+  function showErr(m) {
+    var h = document.getElementById('hint');
+    if (h) h.textContent = m;
+  }
+  try {
+  if (typeof THREE === 'undefined') { showErr('THREE failed'); return; }
+
+  var ACTORS = [
+    { id:'alex', name:'Alex', role:'Chief of Staff', color:0xe8a045, home:[-8,4.6] },
+    { id:'morgan', name:'Morgan', role:'Engineer', color:0x5b9fd4, home:[-4,4.6] },
+    { id:'priya', name:'Priya', role:'Compliance', color:0x3dd68c, home:[0,4.6] },
+    { id:'kai', name:'Kai', role:'Testing', color:0xc070e0, home:[4,4.6] },
+    { id:'elena', name:'Elena', role:'Marketing', color:0xe07090, home:[8,4.6] },
+    { id:'jordan', name:'Jordan', role:'Finance', color:0x70c0c0, home:[-7,-3.5] },
+    { id:'devon', name:'Devon', role:'IT', color:0x9090a8, home:[7,-3.5] },
+    { id:'taylor', name:'Taylor', role:'Knowledge', color:0xd0b070, home:[2,-7] }
+  ];
+  var MARKS = {
+    boardroom: [0, -3.2],
+    desk: null, // actor home
+    center: [0, 0],
+    couch: [10, 7.2],
+    camera: [0, 6]
+  };
+
+  var canvas = document.getElementById('c');
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  try { if (THREE.SRGBColorSpace) renderer.outputColorSpace = THREE.SRGBColorSpace; } catch (e) {}
+  renderer.shadowMap.enabled = true;
+
+  var scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x1a1520);
+  scene.fog = new THREE.Fog(0x1a1520, 16, 36);
+
+  var orbitCam = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 80);
+  orbitCam.position.set(10, 11, 10);
+  var filmCam = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 80);
+  filmCam.position.set(0, 1.8, 9);
+  filmCam.lookAt(0, 1.2, 0);
+  var fpsCam = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 80);
+  fpsCam.position.set(0, 1.55, 8);
+
+  var mode = 'orbit'; // orbit | film | fps
+  var camYaw = Math.PI, camPitch = 0;
+  var keys = {};
+  var lookHeld = { left: 0, right: 0, up: 0, down: 0 };
+
+  scene.add(new THREE.AmbientLight(0xb0a8b8, 0.7));
+  var sun = new THREE.DirectionalLight(0xffe8d0, 0.95);
+  sun.position.set(6, 14, 5);
+  sun.castShadow = true;
+  scene.add(sun);
+  // Key light for "studio"
+  var key = new THREE.PointLight(0xffccaa, 0.6, 30);
+  key.position.set(0, 4, 2);
+  scene.add(key);
+
+  var floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(28, 20),
+    new THREE.MeshStandardMaterial({ color: 0x3a3548, roughness: 0.3 })
+  );
+  floor.rotation.x = -Math.PI / 2;
+  floor.receiveShadow = true;
+  scene.add(floor);
+
+  function box(w, h, d, x, y, z, color) {
+    var m = new THREE.Mesh(
+      new THREE.BoxGeometry(w, h, d),
+      new THREE.MeshStandardMaterial({ color: color, roughness: 0.75 })
+    );
+    m.position.set(x, y, z);
+    m.castShadow = true;
+    scene.add(m);
+  }
+  box(28, 3.2, 0.3, 0, 1.6, -10, 0x2a2535);
+  box(28, 3.2, 0.3, 0, 1.6, 10, 0x2a2535);
+  box(0.3, 3.2, 20, -14, 1.6, 0, 0x2a2535);
+  box(0.3, 3.2, 20, 14, 1.6, 0, 0x2a2535);
+  [-8, -4, 0, 4, 8].forEach(function (x) {
+    box(1.6, 0.08, 0.8, x, 0.72, 4, 0x5a4a3a);
+    box(0.5, 0.55, 0.45, x, 0.55, 5.2, 0x2a3545);
+  });
+  box(5, 0.1, 2.2, 0, 0.75, -2.5, 0x4a3a2a);
+  // Virtual camera prop on set
+  var camProp = new THREE.Group();
+  var body = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.25, 0.55), new THREE.MeshStandardMaterial({ color: 0x222 }));
+  body.position.y = 1.2;
+  camProp.add(body);
+  var lens = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.2, 12), new THREE.MeshStandardMaterial({ color: 0x444 }));
+  lens.rotation.x = Math.PI / 2;
+  lens.position.set(0, 1.2, -0.35);
+  camProp.add(lens);
+  camProp.position.set(0, 0, 8.5);
+  scene.add(camProp);
+
+  function makeHumanoid(color) {
+    var g = new THREE.Group();
+    var matB = new THREE.MeshStandardMaterial({ color: color, roughness: 0.55 });
+    var matS = new THREE.MeshStandardMaterial({ color: 0xe8c4a8, roughness: 0.45 });
+    var matL = new THREE.MeshStandardMaterial({ color: 0x2a3040, roughness: 0.7 });
+    [[-0.12, 0.35], [0.12, 0.35]].forEach(function (p) {
+      var leg = new THREE.Mesh(new THREE.CapsuleGeometry(0.09, 0.35, 3, 6), matL);
+      leg.position.set(p[0], p[1], 0); leg.castShadow = true; g.add(leg);
+    });
+    var torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.22, 0.4, 4, 8), matB);
+    torso.position.y = 0.95; torso.castShadow = true; g.add(torso);
+    [[-0.34, 0.95], [0.34, 0.95]].forEach(function (p) {
+      var arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.07, 0.32, 3, 6), matB);
+      arm.position.set(p[0], p[1], 0); arm.castShadow = true; g.add(arm);
+    });
+    var head = new THREE.Mesh(new THREE.SphereGeometry(0.18, 10, 10), matS);
+    head.position.y = 1.48; head.castShadow = true; g.add(head);
+    return g;
+  }
+  function makeLabel(name) {
+    var c2 = document.createElement('canvas');
+    c2.width = 192; c2.height = 48;
+    var cx = c2.getContext('2d');
+    cx.fillStyle = 'rgba(0,0,0,0.7)';
+    cx.fillRect(0, 4, 192, 40);
+    cx.fillStyle = '#fff'; cx.font = 'bold 18px system-ui'; cx.textAlign = 'center';
+    cx.fillText(name, 96, 30);
+    var label = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.9, 0.22),
+      new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c2), transparent: true })
+    );
+    label.position.y = 1.85;
+    return label;
+  }
+
+  var npcs = [];
+  var byId = {};
+  ACTORS.forEach(function (data) {
+    var root = new THREE.Group();
+    root.position.set(data.home[0], 0, data.home[1]);
+    var body = makeHumanoid(data.color);
+    root.add(body);
+    var label = makeLabel(data.name);
+    root.add(label);
+    root.userData = {
+      id: data.id, name: data.name, home: data.home,
+      target: null, speed: 1.8, phase: Math.random() * 6,
+      mesh: body, label: label, action: 'idle'
+    };
+    scene.add(root);
+    npcs.push(root);
+    byId[data.id] = root;
+  });
+
+  function log(msg) {
+    var el = document.getElementById('log');
+    el.innerHTML = '• ' + msg + '<br>' + el.innerHTML;
+  }
+
+  /** Director language — minimal parse */
+  function direct(text) {
+    text = (text || '').trim().toLowerCase();
+    if (!text) return;
+    log('DIR: ' + text);
+    var all = text.indexOf('all ') === 0 || text === 'all gather' || text.indexOf('everyone') === 0;
+    var ids = all ? Object.keys(byId) : [];
+    if (!all) {
+      Object.keys(byId).forEach(function (id) {
+        if (text.indexOf(id) >= 0) ids.push(id);
+      });
+    }
+    if (!ids.length) {
+      // default: first named or all
+      ids = Object.keys(byId);
+      log('(no actor named — applying to all)');
+    }
+    var dest = null;
+    if (text.indexOf('boardroom') >= 0 || text.indexOf('meeting') >= 0) dest = MARKS.boardroom;
+    else if (text.indexOf('couch') >= 0 || text.indexOf('break') >= 0) dest = MARKS.couch;
+    else if (text.indexOf('center') >= 0 || text.indexOf('gather') >= 0) dest = MARKS.center;
+    else if (text.indexOf('camera') >= 0 || text.indexOf('lens') >= 0) dest = MARKS.camera;
+
+    ids.forEach(function (id, i) {
+      var n = byId[id];
+      if (!n) return;
+      var d = n.userData;
+      if (text.indexOf('idle') >= 0 || text.indexOf('stop') >= 0) {
+        d.target = null; d.action = 'idle'; return;
+      }
+      if (text.indexOf('face camera') >= 0 || text.indexOf('look at camera') >= 0) {
+        d.target = null; d.action = 'face_cam';
+        var dx = filmCam.position.x - n.position.x;
+        var dz = filmCam.position.z - n.position.z;
+        n.rotation.y = Math.atan2(dx, dz);
+        return;
+      }
+      if (text.indexOf('wave') >= 0) {
+        d.action = 'wave';
+        setTimeout(function () { d.action = 'idle'; }, 2000);
+        return;
+      }
+      if (text.indexOf('talk') >= 0) {
+        d.action = 'talk';
+        setTimeout(function () { d.action = 'idle'; }, 3000);
+        return;
+      }
+      if (text.indexOf('walk') >= 0 || text.indexOf('go') >= 0 || text.indexOf('gather') >= 0 || dest) {
+        var mark = dest;
+        if (!mark && text.indexOf('desk') >= 0) mark = d.home;
+        if (!mark) mark = MARKS.center;
+        // stagger gather
+        var ox = (i % 3) * 0.6 - 0.6;
+        var oz = Math.floor(i / 3) * 0.5;
+        d.target = new THREE.Vector3(mark[0] + ox, 0, mark[1] + oz);
+        d.action = 'walk';
+      }
+    });
+  }
+
+  document.getElementById('prompt').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      direct(this.value);
+      this.value = '';
+    }
+  });
+
+  // Recording via virtual camera (canvas stream = whatever cam is active)
+  var mediaRecorder = null;
+  var chunks = [];
+  var recording = false;
+  document.getElementById('btnRec').onclick = function () {
+    if (!recording) {
+      try {
+        var stream = canvas.captureStream(30);
+        chunks = [];
+        mediaRecorder = new MediaRecorder(stream, { mimeType: MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm' });
+        mediaRecorder.ondataavailable = function (e) { if (e.data.size) chunks.push(e.data); };
+        mediaRecorder.onstop = function () {
+          var blob = new Blob(chunks, { type: 'video/webm' });
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = url; a.download = 'cubit-studios-take-' + Date.now() + '.webm';
+          a.click();
+          log('TAKE saved (' + Math.round(blob.size / 1024) + ' KB)');
+        };
+        mediaRecorder.start(200);
+        recording = true;
+        this.classList.add('on');
+        this.textContent = '■ Stop';
+        log('REC — virtual cam capturing');
+      } catch (err) {
+        log('Record failed: ' + err);
+      }
+    } else {
+      mediaRecorder.stop();
+      recording = false;
+      this.classList.remove('on');
+      this.textContent = '● Record';
+    }
+  };
+
+  function setMode(m) {
+    mode = m;
+    var pad = document.getElementById('pad');
+    var badge = document.getElementById('camBadge');
+    pad.classList.toggle('show', m === 'fps');
+    if (m === 'orbit') badge.textContent = 'CAM · ORBIT';
+    if (m === 'film') badge.textContent = 'CAM · FILM (director)';
+    if (m === 'fps') {
+      badge.textContent = 'CAM · WALK SET';
+      fpsCam.position.set(0, 1.55, 8);
+      camYaw = Math.PI; camPitch = 0;
+    }
+    log('Camera: ' + m);
+  }
+  document.getElementById('btnOrbit').onclick = function () { setMode('orbit'); };
+  document.getElementById('btnFilm').onclick = function () { setMode('film'); };
+  document.getElementById('btnFPS').onclick = function () { setMode('fps'); };
+
+  window.addEventListener('keydown', function (e) { keys[e.code] = true; });
+  window.addEventListener('keyup', function (e) { keys[e.code] = false; });
+  function bindHold(el, code) {
+    function down(e) { e.preventDefault(); keys[code] = true; }
+    function up(e) { e.preventDefault(); keys[code] = false; }
+    el.addEventListener('pointerdown', down);
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointerleave', up);
+  }
+  document.querySelectorAll('.wasd button[data-key]').forEach(function (b) {
+    bindHold(b, b.getAttribute('data-key'));
+  });
+  document.querySelectorAll('.look button[data-look]').forEach(function (b) {
+    var dir = b.getAttribute('data-look');
+    function down(e) { e.preventDefault(); lookHeld[dir] = 1; }
+    function up(e) { e.preventDefault(); lookHeld[dir] = 0; }
+    b.addEventListener('pointerdown', down);
+    b.addEventListener('pointerup', up);
+    b.addEventListener('pointerleave', up);
+  });
+
+  var dragging = false, lx = 0, ly = 0;
+  canvas.addEventListener('pointerdown', function (e) {
+    dragging = true; lx = e.clientX; ly = e.clientY;
+  });
+  window.addEventListener('pointerup', function () { dragging = false; });
+  canvas.addEventListener('pointermove', function (e) {
+    if (!dragging) return;
+    var dx = e.clientX - lx, dy = e.clientY - ly; lx = e.clientX; ly = e.clientY;
+    if (mode === 'orbit') {
+      var x = orbitCam.position.x, z = orbitCam.position.z;
+      var r = Math.hypot(x, z);
+      var th = Math.atan2(z, x) - dx * 0.005;
+      var y = Math.max(4, Math.min(16, orbitCam.position.y + dy * 0.02));
+      orbitCam.position.set(Math.cos(th) * r, y, Math.sin(th) * r);
+    } else if (mode === 'film') {
+      filmCam.position.x -= dx * 0.02;
+      filmCam.position.y = Math.max(0.8, Math.min(4, filmCam.position.y + dy * 0.015));
+      filmCam.lookAt(0, 1.1, 0);
+    } else {
+      camYaw -= dx * 0.004;
+      camPitch = Math.max(-1.1, Math.min(1.1, camPitch - dy * 0.004));
+    }
+  });
+
+  function updateActors(dt) {
+    var cam = mode === 'fps' ? fpsCam : (mode === 'film' ? filmCam : orbitCam);
+    npcs.forEach(function (n) {
+      var d = n.userData;
+      if (d.target) {
+        var p = n.position, t = d.target;
+        var ox = t.x - p.x, oz = t.z - p.z;
+        var dist = Math.hypot(ox, oz);
+        if (dist < 0.12) {
+          d.target = null;
+          d.action = 'idle';
+        } else {
+          var sp = d.speed * dt;
+          p.x += (ox / dist) * sp; p.z += (oz / dist) * sp;
+          n.rotation.y = Math.atan2(ox, oz);
+        }
+      }
+      d.phase += dt * (d.target ? 10 : (d.action === 'wave' || d.action === 'talk' ? 8 : 2));
+      if (d.mesh) {
+        d.mesh.position.y = Math.sin(d.phase) * (d.target ? 0.04 : 0.012);
+        if (d.action === 'wave' || d.action === 'talk') {
+          d.mesh.children.forEach(function (ch, i) {
+            if (i >= 2 && i <= 3) ch.rotation.z = Math.sin(d.phase) * 0.5;
+          });
+        }
+      }
+      if (d.label) d.label.lookAt(cam.position);
+    });
+  }
+  function updateFPS(dt) {
+    if (mode !== 'fps') return;
+    var lookSp = 1.6 * dt;
+    if (lookHeld.left) camYaw += lookSp;
+    if (lookHeld.right) camYaw -= lookSp;
+    if (lookHeld.up) camPitch = Math.min(1.1, camPitch + lookSp);
+    if (lookHeld.down) camPitch = Math.max(-1.1, camPitch - lookSp);
+    var sp = 3.0;
+    var f = new THREE.Vector3(-Math.sin(camYaw), 0, -Math.cos(camYaw));
+    var r = new THREE.Vector3(Math.cos(camYaw), 0, -Math.sin(camYaw));
+    var m = new THREE.Vector3();
+    if (keys['KeyW']) m.add(f);
+    if (keys['KeyS']) m.sub(f);
+    if (keys['KeyD']) m.add(r);
+    if (keys['KeyA']) m.sub(r);
+    if (m.lengthSq()) {
+      m.normalize().multiplyScalar(sp * dt);
+      fpsCam.position.add(m);
+      fpsCam.position.x = Math.max(-13, Math.min(13, fpsCam.position.x));
+      fpsCam.position.z = Math.max(-9, Math.min(9, fpsCam.position.z));
+    }
+    fpsCam.position.y = 1.55;
+    fpsCam.rotation.order = 'YXZ';
+    fpsCam.rotation.y = camYaw;
+    fpsCam.rotation.x = camPitch;
+  }
+
+  var last = performance.now();
+  function frame(now) {
+    var dt = Math.min(0.05, (now - last) / 1000); last = now;
+    updateActors(dt); updateFPS(dt);
+    var cam = mode === 'fps' ? fpsCam : (mode === 'film' ? filmCam : orbitCam);
+    if (mode === 'orbit') orbitCam.lookAt(0, 0.5, 0);
+    renderer.render(scene, cam);
+    requestAnimationFrame(frame);
+  }
+  window.addEventListener('resize', function () {
+    var a = window.innerWidth / window.innerHeight;
+    orbitCam.aspect = filmCam.aspect = fpsCam.aspect = a;
+    orbitCam.updateProjectionMatrix();
+    filmCam.updateProjectionMatrix();
+    fpsCam.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  function enter() {
+    document.getElementById('boot').classList.add('hide');
+    log('Stage A live — HQ set');
+    log('Type a direction. Try: all gather · alex walk to boardroom · morgan face camera');
+    document.getElementById('hint').textContent = 'Director prompt · Film cam · Record take';
+    setMode('film');
+    requestAnimationFrame(frame);
+  }
+  window.__studiosEnter = enter;
+  document.getElementById('btnEnter').onclick = enter;
+  document.getElementById('hint').textContent = 'Engine ready — Open Stage A';
+  } catch (e) {
+    showErr('Init: ' + e);
+  }
+})();
+  </script>
+</body>
+</html>

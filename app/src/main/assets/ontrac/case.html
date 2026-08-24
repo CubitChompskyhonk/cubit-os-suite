@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>OnTrac</title>
+  <style>
+    :root {
+      --bg: #07090c; --card: #121820; --line: #2a3340; --text: #f2f5f8;
+      --mute: #8b97a8; --accent: #e8a045; --ok: #3dd68c;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100dvh; padding: 16px 14px 36px; line-height: 1.45;
+    }
+    .brand { font-size: 0.6rem; letter-spacing: 0.16em; color: var(--accent); font-weight: 800; }
+    .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    a { color: var(--mute); font-size: 0.8rem; text-decoration: none; }
+    h1 { font-size: 1.15rem; margin: 4px 0 12px; font-weight: 700; }
+    .card {
+      background: var(--card); border: 1px solid var(--line);
+      border-radius: 16px; padding: 16px; margin-bottom: 10px;
+    }
+    .label { font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mute); }
+    .stage { color: var(--ok); font-weight: 700; margin-top: 4px; text-transform: capitalize; }
+    .next { font-size: 1.15rem; font-weight: 700; margin: 12px 0 8px; }
+    .scope { color: var(--mute); font-size: 0.88rem; margin-bottom: 14px; }
+    button.approve {
+      width: 100%; border: none; border-radius: 14px; padding: 18px;
+      font-weight: 800; font-size: 1.05rem;
+      background: linear-gradient(180deg, #f0b45a, #d4892a); color: #120c04;
+    }
+    button.approve:disabled { opacity: 0.35; }
+    button.ghost {
+      width: 100%; margin-top: 8px; padding: 12px; border-radius: 12px;
+      background: transparent; border: 1px solid var(--line); color: var(--mute); font-weight: 600; font-size: 0.88rem;
+    }
+    .exec, .note {
+      display: none; margin-top: 12px; padding: 12px; border-radius: 10px; font-size: 0.86rem; white-space: pre-wrap;
+    }
+    .exec { background: #0c1812; border: 1px solid #1e3d2e; color: var(--ok); }
+    .note { background: #1a1510; border: 1px solid #5a4030; color: #e0c090; }
+    .exec.show, .note.show { display: block; }
+    .pulse { animation: p 1.2s ease infinite; }
+    @keyframes p { 50% { opacity: 0.65; } }
+    .details { display: none; margin-top: 8px; }
+    .details.open { display: block; }
+    .list { list-style: none; font-size: 0.82rem; }
+    .list li { padding: 8px 0; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 8px; }
+    .badge { font-size: 0.65rem; color: var(--accent); }
+    .badge.done { color: var(--ok); }
+    .strip { font-size: 0.8rem; color: var(--mute); margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div class="brand">ONTRAC · YOUR CASE</div>
+    <a href="index.html">Home</a>
+  </div>
+  <h1 id="heading">Tax recovery</h1>
+
+  <div class="card">
+    <div class="label">Stage</div>
+    <div class="stage" id="stage">—</div>
+    <div class="strip" id="strips"></div>
+  </div>
+
+  <div class="card" id="awarenessCard" style="display:none;border-color:#5a4030">
+    <div class="label" style="color:#e8a045">Awareness</div>
+    <p style="font-size:0.86rem;color:#c8d2dc;margin-top:6px">Recovering years can mean a large refund or credit. That can affect other benefits. Eyes open — OnTrac does not hide what you may pursue.</p>
+  </div>
+
+  <div class="card">
+    <div class="label">OnTrac will do this next</div>
+    <div class="next" id="nextTitle">—</div>
+    <p class="scope" id="nextScope"></p>
+    <button type="button" class="approve pulse" id="btnApprove">Approve — do this for me</button>
+    <div class="exec" id="execLog"></div>
+    <div class="note" id="letterBox"></div>
+    <button type="button" class="ghost" id="btnPause">Pause</button>
+  </div>
+
+  <button type="button" class="ghost" id="toggleDetails">Show details</button>
+  <div class="details" id="details">
+    <div class="card">
+      <div class="label">Carrying</div>
+      <ul class="list" id="taskList"></ul>
+    </div>
+    <div class="card">
+      <div class="label">Your Approves</div>
+      <ul class="list" id="consentList"></ul>
+    </div>
+    <button type="button" class="ghost" id="btnVault">Case vault</button>
+    <button type="button" class="ghost" id="btnOutreach">Outreach desk</button>
+    <button type="button" class="ghost" id="btnCall">Call script</button>
+    <button type="button" class="ghost" id="btnExport">Export consent log</button>
+  </div>
+
+  <script>
+(function () {
+  function qs(name) {
+    var m = location.search.match(new RegExp("[?&]" + name + "=([^&]+)"));
+    return m ? decodeURIComponent(m[1]) : null;
+  }
+  function persist(state) {
+    state.updatedAt = new Date().toISOString();
+    var json = JSON.stringify(state);
+    try { if (window.OnTracNative && OnTracNative.saveCase) OnTracNative.saveCase(state.caseId, json); } catch (e) {}
+    try {
+      localStorage.setItem("ontrac_case_" + state.caseId, json);
+      localStorage.setItem("ontrac_last_case_id", state.caseId);
+      var idx = JSON.parse(localStorage.getItem("ontrac_case_index") || "[]");
+      if (idx.indexOf(state.caseId) < 0) idx.push(state.caseId);
+      localStorage.setItem("ontrac_case_index", JSON.stringify(idx));
+    } catch (e) {}
+  }
+  function loadCase(id) {
+    try {
+      if (window.OnTracNative && OnTracNative.loadCase) {
+        var raw = OnTracNative.loadCase(id);
+        if (raw) return JSON.parse(raw);
+      }
+    } catch (e) {}
+    try {
+      var r = localStorage.getItem("ontrac_case_" + id);
+      if (r) return JSON.parse(r);
+    } catch (e) {}
+    return null;
+  }
+
+  var RUNS = {
+    t3: async function (ctx) {
+      return await new Promise(function (resolve) {
+        window.onTracCaptureResult = function (ok, path) {
+          if (ok && path) {
+            ctx.state.vault = ctx.state.vault || [];
+            ctx.state.vault.push({ path: path, ts: new Date().toISOString() });
+            resolve({ log: "Document in vault.\n" + path + "\nYou did not file or rename anything." });
+          } else {
+            resolve({ log: "No file yet. Approve again when ready — still our job.", block: true });
+          }
+        };
+        try {
+          if (window.OnTracNative) window.OnTracNative.requestDocumentCapture(ctx.caseId, ctx.consentId);
+          else {
+            ctx.state.vault.push({ path: "(demo) slip.jpg", ts: new Date().toISOString() });
+            resolve({ log: "Demo vault entry (use APK for camera)." });
+          }
+        } catch (e) { resolve({ log: String(e), block: true }); }
+      });
+    },
+    t4: async function (ctx) {
+      setTimeout(function () {
+        location.href = "cra_guide.html?id=" + encodeURIComponent(ctx.caseId) + "&lockout=1";
+      }, 400);
+      return { log: "Opening CRA lockout recovery — OnTrac holds the checklist.\nPasswords stay yours. Never stored here." };
+    },
+    t5: async function (ctx) {
+      ctx.state.repLevel = "level_1";
+      return { log: "Level 1 authorization path prepared.\nInformation disclosure only until you Approve more." };
+    },
+    t6: async function (ctx) {
+      if (ctx.state.repLevel === "none") {
+        return { log: "Held: authorization not ready. OnTrac finishes that first.", block: true };
+      }
+      setTimeout(function () {
+        location.href = "outreach.html?id=" + encodeURIComponent(ctx.caseId);
+      }, 350);
+      return { log: "Outreach desk — name recipient once. OnTrac writes the letter." };
+    },
+    t7: async function (ctx) {
+      return { log: "Tracking armed.\nRefs, call outcomes, and CRA notes stay on this case." };
+    }
+  };
+
+  function attach(state) {
+    (state.tasks || []).forEach(function (t) {
+      if (RUNS[t.id]) t.run = RUNS[t.id];
+      else t.run = async function () { return { log: "Done." }; };
+    });
+    return state;
+  }
+
+  var id = qs("id");
+  var state = id ? loadCase(id) : null;
+  if (!state) {
+    location.replace("index.html");
+    return;
+  }
+  state = attach(state);
+
+  function current() {
+    return (state.tasks || []).find(function (t) { return t.status === "awaiting"; }) || null;
+  }
+  function stageFrom() {
+    var n = (state.tasks || []).filter(function (t) { return t.status === "done"; }).length;
+    if (n >= 7) return "follow up";
+    if (n >= 6) return "track";
+    if (n >= 5) return "act";
+    if (n >= 3) return "gather";
+    return "diagnose";
+  }
+
+  function render() {
+    state.stage = stageFrom();
+    document.getElementById("heading").textContent =
+      (state.title || "Tax recovery") + " · " + ((state.years || []).join("–") || "");
+    document.getElementById("stage").textContent = state.stage;
+    var strips = [];
+    if (state.profile && state.profile.lockedOut) strips.push("CRA lockout path");
+    var vc = (state.vault && state.vault.length) || 0;
+    try {
+      if (window.OnTracNative && OnTracNative.listVault) {
+        var vf = JSON.parse(OnTracNative.listVault(state.caseId) || "[]");
+        if (vf.length) vc = vf.length;
+      }
+    } catch (e) {}
+    strips.push("Vault: " + (vc ? vc + " file(s)" : "empty"));
+    if (state.craGuide) strips.push("CRA guide logged");
+    if (state.outreach) strips.push("Outreach: " + state.outreach.to);
+    if (state.callOutcome) strips.push("Call: " + state.callOutcome.result);
+    document.getElementById("strips").textContent = strips.join(" · ");
+    document.getElementById("awarenessCard").style.display =
+      (state.stage === "gather" || state.stage === "act" || state.stage === "track") ? "block" : "none";
+
+    var t = current();
+    var btn = document.getElementById("btnApprove");
+    if (!t) {
+      document.getElementById("nextTitle").textContent = "Loop quiet — for now";
+      document.getElementById("nextScope").textContent = "Case is on this phone. One button when a new wall appears.";
+      btn.disabled = true; btn.classList.remove("pulse");
+    } else {
+      btn.disabled = false; btn.classList.add("pulse");
+      document.getElementById("nextTitle").textContent = t.title;
+      document.getElementById("nextScope").textContent = t.scope || "Approve and OnTrac performs this step.";
+    }
+    document.getElementById("taskList").innerHTML = (state.tasks || []).map(function (x) {
+      return "<li><span>" + x.title + "</span><span class=\"badge " +
+        (x.status === "done" ? "done" : "") + "\">" + x.status + "</span></li>";
+    }).join("");
+    document.getElementById("consentList").innerHTML = (state.consent && state.consent.length)
+      ? state.consent.map(function (c) {
+          return "<li><span>" + c.summary + "</span><span class=\"badge done\">" + c.decision + "</span></li>";
+        }).join("")
+      : "<li><span>None yet</span></li>";
+  }
+
+  async function approve() {
+    var t = current();
+    if (!t) return;
+    var consentId = "c_" + Date.now().toString(36);
+    state.consent = state.consent || [];
+    state.consent.unshift({ summary: t.title, decision: "approve", id: consentId, ts: new Date().toISOString() });
+    t.status = "running";
+    persist(state); render();
+    var ctx = { caseId: state.caseId, consentId: consentId, scope: t.scope, state: state };
+    var result = { log: "Done." };
+    try { result = (await (t.run || RUNS[t.id])(ctx)) || result; } catch (e) { result = { log: String(e), block: true }; }
+    t.status = result.block ? "awaiting" : "done";
+    var ex = document.getElementById("execLog");
+    ex.textContent = result.log; ex.classList.add("show");
+    if (result.letter) {
+      var lb = document.getElementById("letterBox");
+      lb.textContent = result.letter; lb.classList.add("show");
+    }
+    try { if (window.OnTracNative) OnTracNative.toast(result.block ? "Held" : "Moved"); } catch (e) {}
+    persist(state); render();
+  }
+
+  document.getElementById("btnApprove").onclick = approve;
+  document.getElementById("btnPause").onclick = function () {
+    var t = current();
+    if (t) state.consent.unshift({ summary: t.title, decision: "pause" });
+    persist(state); render();
+  };
+  document.getElementById("toggleDetails").onclick = function () {
+    var d = document.getElementById("details");
+    d.classList.toggle("open");
+    this.textContent = d.classList.contains("open") ? "Hide details" : "Show details";
+  };
+  document.getElementById("btnVault").onclick = function () {
+    location.href = "vault.html?id=" + encodeURIComponent(state.caseId);
+  };
+  document.getElementById("btnOutreach").onclick = function () {
+    location.href = "outreach.html?id=" + encodeURIComponent(state.caseId);
+  };
+  document.getElementById("btnCall").onclick = function () {
+    location.href = "call_script.html?id=" + encodeURIComponent(state.caseId);
+  };
+  document.getElementById("btnExport").onclick = function () {
+    var text = JSON.stringify({ caseId: state.caseId, consent: state.consent, exportedAt: new Date().toISOString() }, null, 2);
+    try {
+      if (window.OnTracNative && OnTracNative.shareOutreach) OnTracNative.shareOutreach("OnTrac consent", text);
+      else prompt("Copy", text);
+    } catch (e) { prompt("Copy", text); }
+  };
+
+  persist(state);
+  render();
+})();
+  </script>
+</body>
+</html>

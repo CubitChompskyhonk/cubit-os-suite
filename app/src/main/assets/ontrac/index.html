@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>OnTrac</title>
+  <style>
+    :root {
+      --bg: #07090c; --card: #121820; --line: #2a3340; --text: #f2f5f8;
+      --mute: #8b97a8; --accent: #e8a045; --ok: #3dd68c;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100dvh; padding: 20px 16px 40px; line-height: 1.45;
+    }
+    .brand { font-size: 0.62rem; letter-spacing: 0.18em; color: var(--accent); font-weight: 800; }
+    h1 { font-size: 1.55rem; font-weight: 750; margin: 12px 0 8px; letter-spacing: -0.03em; }
+    .sub { color: var(--mute); font-size: 0.95rem; margin-bottom: 20px; }
+    .card {
+      background: var(--card); border: 1px solid var(--line);
+      border-radius: 16px; padding: 18px 16px; margin-bottom: 12px;
+    }
+    .label { font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mute); }
+    .next { font-size: 1.2rem; font-weight: 700; margin: 10px 0 8px; }
+    .scope { color: var(--mute); font-size: 0.9rem; margin-bottom: 16px; }
+    button.approve {
+      width: 100%; border: none; border-radius: 14px; padding: 18px;
+      font-weight: 800; font-size: 1.05rem;
+      background: linear-gradient(180deg, #f0b45a, #d4892a); color: #120c04;
+    }
+    button.approve:disabled { opacity: 0.4; }
+    button.ghost {
+      width: 100%; margin-top: 10px; padding: 12px; border-radius: 12px;
+      background: transparent; border: 1px solid var(--line); color: var(--mute); font-weight: 600;
+    }
+    .pilot {
+      font-size: 0.75rem; color: var(--mute); text-align: center; margin-top: 18px;
+    }
+    .exec {
+      display: none; margin-top: 12px; padding: 12px; border-radius: 10px;
+      background: #0c1812; border: 1px solid #1e3d2e; color: var(--ok); font-size: 0.88rem;
+      white-space: pre-wrap;
+    }
+    .exec.show { display: block; }
+    .pulse { animation: p 1.2s ease infinite; }
+    @keyframes p { 50% { opacity: 0.65; } }
+  </style>
+</head>
+<body>
+  <div class="brand">ONTRAC · PILOT</div>
+  <div id="root"></div>
+  <p class="pilot">Pilot build · Consent before every move · Not legal or tax advice</p>
+
+  <script>
+(function () {
+  function has(key) {
+    try { return !!localStorage.getItem(key); } catch (e) { return false; }
+  }
+  if (!has("ontrac_onboarding_v1")) {
+    location.replace("onboarding.html");
+    return;
+  }
+  if (!has("ontrac_compliance_v1")) {
+    location.replace("compliance.html");
+    return;
+  }
+
+  function listCases() {
+    try {
+      if (window.OnTracNative && OnTracNative.listCases) {
+        var arr = JSON.parse(OnTracNative.listCases() || "[]");
+        return Array.isArray(arr) ? arr.filter(function (c) { return c && c.caseId; }) : [];
+      }
+    } catch (e) {}
+    try {
+      var ids = JSON.parse(localStorage.getItem("ontrac_case_index") || "[]");
+      return ids.map(function (id) {
+        try { return JSON.parse(localStorage.getItem("ontrac_case_" + id) || "null"); } catch (e) { return null; }
+      }).filter(Boolean);
+    } catch (e) { return []; }
+  }
+
+  var cases = listCases();
+  // Prefer most recently updated active case
+  cases.sort(function (a, b) {
+    return (b.updatedAt || "").localeCompare(a.updatedAt || "");
+  });
+  var active = cases[0] || null;
+
+  if (active) {
+    location.replace("case.html?id=" + encodeURIComponent(active.caseId));
+    return;
+  }
+
+  // ZERO STATE — one button. Customer zero: locked out + unfiled years.
+  document.getElementById("root").innerHTML =
+    "<h1>Locked out.<br/>Years unfiled.<br/>One button.</h1>" +
+    "<p class=\"sub\">OnTrac carries the recovery. You Approve. That is the whole product.</p>" +
+    "<div class=\"card\">" +
+    "<div class=\"label\">Next — OnTrac will do this</div>" +
+    "<div class=\"next\">Open your tax recovery case</div>" +
+    "<p class=\"scope\">Creates a case for multi-year unfiled returns and CRA lockout. No homework. Progress stays on this phone.</p>" +
+    "<button type=\"button\" class=\"approve pulse\" id=\"go\">Approve — start recovery</button>" +
+    "<div class=\"exec\" id=\"exec\"></div>" +
+    "</div>" +
+    "<button type=\"button\" class=\"ghost\" id=\"more\">Pilot notes</button>";
+
+  document.getElementById("more").onclick = function () {
+    location.href = "install.html";
+  };
+
+  document.getElementById("go").onclick = function () {
+    var btn = document.getElementById("go");
+    btn.disabled = true;
+    var id = "case_" + Date.now().toString(36);
+    var state = {
+      caseId: id,
+      title: "Tax recovery",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      stage: "gather",
+      years: [2019, 2020, 2021, 2022, 2023],
+      profile: {
+        lockedOut: true,
+        unfiledMultiYear: true,
+        customerZero: true
+      },
+      repLevel: "none",
+      vault: [],
+      consent: [{
+        id: "c_start",
+        summary: "Start recovery case (locked out + unfiled years)",
+        decision: "approve",
+        ts: new Date().toISOString()
+      }],
+      tasks: [
+        { id: "t1", title: "Open recovery case for lockout + unfiled years", status: "done" },
+        { id: "t2", title: "Map years that need filing", status: "done" },
+        { id: "t3", title: "Capture income documents into case vault", status: "awaiting",
+          scope: "OnTrac opens camera/files and stores images only on this case." },
+        { id: "t4", title: "Run CRA access recovery (locked-out path)", status: "awaiting",
+          scope: "OnTrac holds the lockout checklist and official recovery links. Passwords never stored." },
+        { id: "t5", title: "Prepare representative authorization if needed", status: "awaiting",
+          scope: "Level 1 package so information can be obtained with your Approve." },
+        { id: "t6", title: "Send outreach (OnTrac writes the letter)", status: "awaiting",
+          scope: "You name the recipient once. OnTrac writes and opens send." },
+        { id: "t7", title: "Track until the loop is quiet", status: "awaiting",
+          scope: "Outcomes and reference numbers stay on the case." }
+      ]
+    };
+    var json = JSON.stringify(state);
+    try {
+      if (window.OnTracNative && OnTracNative.saveCase) OnTracNative.saveCase(id, json);
+    } catch (e) {}
+    try {
+      localStorage.setItem("ontrac_case_" + id, json);
+      localStorage.setItem("ontrac_last_case_id", id);
+      var idx = JSON.parse(localStorage.getItem("ontrac_case_index") || "[]");
+      if (idx.indexOf(id) < 0) idx.push(id);
+      localStorage.setItem("ontrac_case_index", JSON.stringify(idx));
+    } catch (e) {}
+    var ex = document.getElementById("exec");
+    ex.textContent = "Case opened on device.\nYears: 2019–2023.\nLockout path armed.\nOpening your next Approve…";
+    ex.classList.add("show");
+    try { if (window.OnTracNative) OnTracNative.toast("Recovery started"); } catch (e) {}
+    setTimeout(function () {
+      location.replace("case.html?id=" + encodeURIComponent(id));
+    }, 700);
+  };
+})();
+  </script>
+</body>
+</html>

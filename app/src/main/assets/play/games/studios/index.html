@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>Cubit Studios · Proof</title>
+  <title>Cubit Studios · v0.2</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{width:100%;height:100%;overflow:hidden;background:#0a0c10;font-family:system-ui,sans-serif;color:#eef2f6;touch-action:none}
@@ -11,26 +11,31 @@
     #boot{position:absolute;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;background:radial-gradient(ellipse at center,#1a1520 0%,#0a0c10 70%)}
     #boot.hide{display:none}
     .logo{font-size:.7rem;letter-spacing:.2em;color:#e07090;font-weight:800}
-    #boot h1{font-size:1.6rem;margin:10px 0}
-    #boot p{color:#8b97a8;max-width:380px;margin-bottom:18px;line-height:1.45;font-size:.95rem}
+    #boot h1{font-size:1.55rem;margin:10px 0}
+    #boot p{color:#8b97a8;max-width:400px;margin-bottom:18px;line-height:1.45;font-size:.92rem}
     #boot button{border:none;border-radius:12px;padding:14px 28px;font-weight:800;background:linear-gradient(180deg,#e07090,#a04060);color:#fff}
-    #top{position:absolute;left:10px;top:10px;right:10px;z-index:5;pointer-events:none;display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
-    .panel{pointer-events:auto;background:rgba(12,14,20,.92);border:1px solid #2a3142;border-radius:12px;padding:10px 12px;max-width:min(420px,96vw)}
+    #top{position:absolute;left:8px;top:8px;right:8px;z-index:5;pointer-events:none;display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
+    .panel{pointer-events:auto;background:rgba(12,14,20,.92);border:1px solid #2a3142;border-radius:12px;padding:10px 12px;max-width:min(440px,96vw)}
     .brand{font-size:.58rem;letter-spacing:.14em;color:#e07090;font-weight:800}
     h2{font-size:.95rem;margin:4px 0}
-    .muted{color:#8b97a8;font-size:.72rem;line-height:1.35}
+    .muted{color:#8b97a8;font-size:.7rem;line-height:1.35}
     .row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-    button.ui{border:none;border-radius:8px;padding:8px 10px;font-weight:700;font-size:.72rem;background:#5b3a5a;color:#f0e0ea}
+    button.ui{border:none;border-radius:8px;padding:8px 10px;font-weight:700;font-size:.7rem;background:#5b3a5a;color:#f0e0ea}
     button.ui.sec{background:#1a222c;color:#c5d0dc;border:1px solid #2a3444}
     button.ui.rec{background:#8b2030;color:#fff}
     button.ui.rec.on{background:#e04050;animation:pulse 1s infinite}
+    button.ui.go{background:#2a6a4a;color:#e8fff0}
     @keyframes pulse{50%{opacity:.75}}
     #director{width:100%;margin-top:8px}
-    #director input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #3a3142;background:#12151c;color:#eef2f6;font-size:.85rem}
-    #director .hint{font-size:.65rem;color:#6a7585;margin-top:4px}
-    #log{position:absolute;right:10px;bottom:120px;width:min(300px,42vw);max-height:140px;overflow:auto;font-size:.68rem;color:#9aa8b8;background:rgba(10,14,20,.88);border-radius:8px;padding:8px;border:1px solid #2a3444;z-index:5;pointer-events:none}
-    #camBadge{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:6;font-size:.65rem;letter-spacing:.12em;color:#e07090;background:rgba(0,0,0,.55);padding:4px 12px;border-radius:12px;pointer-events:none}
-    #hint{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);z-index:6;font-size:.7rem;color:#8b97a8;background:rgba(0,0,0,.5);padding:4px 10px;border-radius:12px;pointer-events:none}
+    #director input,#director textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #3a3142;background:#12151c;color:#eef2f6;font-size:.82rem}
+    #director textarea{min-height:56px;resize:vertical;font-family:inherit}
+    #director .hint{font-size:.62rem;color:#6a7585;margin-top:4px}
+    #shots{margin-top:8px;max-height:90px;overflow:auto;font-size:.68rem;color:#9aa8b8}
+    #shots div{padding:3px 0;border-bottom:1px solid #1a222c}
+    #shots .on{color:#e07090;font-weight:700}
+    #log{position:absolute;right:8px;bottom:120px;width:min(280px,40vw);max-height:130px;overflow:auto;font-size:.65rem;color:#9aa8b8;background:rgba(10,14,20,.88);border-radius:8px;padding:8px;border:1px solid #2a3444;z-index:5;pointer-events:none}
+    #camBadge{position:absolute;left:50%;top:10px;transform:translateX(-50%);z-index:6;font-size:.62rem;letter-spacing:.12em;color:#e07090;background:rgba(0,0,0,.55);padding:4px 12px;border-radius:12px;pointer-events:none}
+    #hint{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);z-index:6;font-size:.68rem;color:#8b97a8;background:rgba(0,0,0,.5);padding:4px 10px;border-radius:12px;pointer-events:none}
     #pad{display:none;position:absolute;left:0;right:0;bottom:0;height:150px;z-index:12;pointer-events:none}
     #pad.show{display:block}
     .wasd{position:absolute;left:12px;bottom:12px;width:140px;height:140px}
@@ -38,32 +43,40 @@
     .wasd button,.look button{position:absolute;width:42px;height:42px;border:1px solid #3a4558;border-radius:10px;background:rgba(20,28,40,.9);color:#eef2f6;font-weight:800;font-size:.8rem;pointer-events:auto}
     .wasd .w{left:49px;top:0}.wasd .a{left:0;top:49px}.wasd .s{left:49px;top:49px}.wasd .d{left:98px;top:49px}
     .look .u{left:49px;top:0}.look .l{left:0;top:49px}.look .r{left:98px;top:49px}.look .dn{left:49px;top:49px}
+    #markLabels{position:absolute;inset:0;pointer-events:none;z-index:2}
   </style>
 </head>
 <body>
   <div id="boot">
-    <div class="logo">CUBIT STUDIOS · PROOF v0.1</div>
-    <h1>Virtual set · Director mode</h1>
-    <p>HQ floor as Stage A. Text-direct actors. Virtual camera. Capture the take. Xavier / Toon Twister lineage — cutscene-quality direction in-engine.</p>
-    <button type="button" id="btnEnter" onclick="if(window.__studiosEnter)window.__studiosEnter()">Open Stage A</button>
+    <div class="logo">CUBIT STUDIOS™ · v0.2</div>
+    <h1>Stage A · Director desk</h1>
+    <p>Multi-beat scripts. Shot list. Film camera. Record or still-frame export. HQ floor as soundstage.</p>
+    <button type="button" id="btnEnter">Open Stage A</button>
   </div>
   <canvas id="c"></canvas>
-  <div id="camBadge">CAM · ORBIT</div>
+  <div id="camBadge">CAM · FILM</div>
   <div id="top">
     <div class="panel">
-      <div class="brand">CUBIT STUDIOS</div>
+      <div class="brand">CUBIT STUDIOS™</div>
       <h2>Director desk</h2>
-      <p class="muted">Prove: commands to actors · virtual cam · record take</p>
+      <p class="muted">One scene → one take. Beats run in order.</p>
       <div class="row">
-        <button type="button" class="ui sec" id="btnOrbit">Orbit cam</button>
-        <button type="button" class="ui sec" id="btnFilm">Film cam</button>
-        <button type="button" class="ui sec" id="btnFPS">Walk set</button>
+        <button type="button" class="ui sec" id="btnOrbit">Orbit</button>
+        <button type="button" class="ui sec" id="btnFilm">Film</button>
+        <button type="button" class="ui sec" id="btnFPS">Walk</button>
         <button type="button" class="ui rec" id="btnRec">● Record</button>
+        <button type="button" class="ui sec" id="btnStill">Still</button>
+      </div>
+      <div class="row">
+        <button type="button" class="ui go" id="btnRun">▶ Run script</button>
+        <button type="button" class="ui sec" id="btnStop">Stop</button>
+        <button type="button" class="ui sec" id="btnSample">Load sample</button>
       </div>
       <div id="director">
-        <input id="prompt" type="text" placeholder='e.g. alex walk to boardroom · morgan face camera · all gather' autocomplete="off" />
-        <div class="hint">Actors: alex morgan priya kai elena jordan devon taylor · verbs: walk face wave gather idle talk</div>
+        <textarea id="prompt" placeholder="One command per line. Example:&#10;all gather&#10;wait 2&#10;morgan face camera&#10;alex wave&#10;wait 1&#10;kai talk"></textarea>
+        <div class="hint">Actors: alex morgan priya kai elena jordan devon taylor · Verbs: walk go gather face wave talk idle stop · Marks: boardroom center couch camera desk · wait N</div>
       </div>
+      <div id="shots"></div>
     </div>
   </div>
   <div id="log"></div>
@@ -82,6 +95,7 @@
     </div>
   </div>
   <div id="hint">Loading…</div>
+  <div id="cubit-copyright" style="position:fixed;bottom:4px;left:50%;transform:translateX(-50%);z-index:99;font:600 10px/1.2 system-ui,sans-serif;color:rgba(200,210,220,.55);pointer-events:none;text-align:center">© 2026 Cubit Systems Inc. · CUBIT STUDIOS™</div>
   <script src="./src/three.min.js"></script>
   <script>
 (function () {
@@ -104,10 +118,10 @@
   ];
   var MARKS = {
     boardroom: [0, -3.2],
-    desk: null, // actor home
     center: [0, 0],
     couch: [10, 7.2],
-    camera: [0, 6]
+    camera: [0, 6],
+    desk: null
   };
 
   var canvas = document.getElementById('c');
@@ -129,7 +143,7 @@
   var fpsCam = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 80);
   fpsCam.position.set(0, 1.55, 8);
 
-  var mode = 'orbit'; // orbit | film | fps
+  var mode = 'film';
   var camYaw = Math.PI, camPitch = 0;
   var keys = {};
   var lookHeld = { left: 0, right: 0, up: 0, down: 0 };
@@ -139,7 +153,6 @@
   sun.position.set(6, 14, 5);
   sun.castShadow = true;
   scene.add(sun);
-  // Key light for "studio"
   var key = new THREE.PointLight(0xffccaa, 0.6, 30);
   key.position.set(0, 4, 2);
   scene.add(key);
@@ -170,7 +183,37 @@
     box(0.5, 0.55, 0.45, x, 0.55, 5.2, 0x2a3545);
   });
   box(5, 0.1, 2.2, 0, 0.75, -2.5, 0x4a3a2a);
-  // Virtual camera prop on set
+
+  // Floor mark discs
+  function markDisc(x, z, label, col) {
+    var g = new THREE.Mesh(
+      new THREE.CircleGeometry(0.45, 16),
+      new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.35 })
+    );
+    g.rotation.x = -Math.PI / 2;
+    g.position.set(x, 0.02, z);
+    scene.add(g);
+    var c2 = document.createElement('canvas');
+    c2.width = 128; c2.height = 32;
+    var cx = c2.getContext('2d');
+    cx.fillStyle = 'rgba(0,0,0,0.55)';
+    cx.fillRect(0, 0, 128, 32);
+    cx.fillStyle = '#e07090';
+    cx.font = 'bold 14px system-ui';
+    cx.textAlign = 'center';
+    cx.fillText(label, 64, 22);
+    var spr = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.2, 0.3),
+      new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c2), transparent: true })
+    );
+    spr.position.set(x, 0.35, z);
+    scene.add(spr);
+  }
+  markDisc(0, -3.2, 'BOARDROOM', 0xe07090);
+  markDisc(0, 0, 'CENTER', 0x5b9fd4);
+  markDisc(10, 7.2, 'COUCH', 0x3dd68c);
+  markDisc(0, 6, 'CAMERA', 0xd0b070);
+
   var camProp = new THREE.Group();
   var body = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.25, 0.55), new THREE.MeshStandardMaterial({ color: 0x222 }));
   body.position.y = 1.2;
@@ -241,91 +284,195 @@
     el.innerHTML = '• ' + msg + '<br>' + el.innerHTML;
   }
 
-  /** Director language — minimal parse */
-  function direct(text) {
+  function resolveActors(text) {
+    var all = /\b(all|everyone|everybody)\b/.test(text);
+    if (all) return Object.keys(byId);
+    var ids = [];
+    Object.keys(byId).forEach(function (id) {
+      if (text.indexOf(id) >= 0) ids.push(id);
+    });
+    return ids.length ? ids : Object.keys(byId);
+  }
+
+  function resolveMark(text, home) {
+    if (/\bboardroom\b|\bmeeting\b/.test(text)) return MARKS.boardroom;
+    if (/\bcouch\b|\bbreak\b/.test(text)) return MARKS.couch;
+    if (/\bcenter\b|\bgather\b/.test(text)) return MARKS.center;
+    if (/\bcamera\b|\blens\b/.test(text)) return MARKS.camera;
+    if (/\bdesk\b|\bhome\b/.test(text)) return home;
+    return null;
+  }
+
+  /** Single beat execution */
+  function directLine(text) {
     text = (text || '').trim().toLowerCase();
-    if (!text) return;
+    if (!text || text.charAt(0) === '#') return null;
     log('DIR: ' + text);
-    var all = text.indexOf('all ') === 0 || text === 'all gather' || text.indexOf('everyone') === 0;
-    var ids = all ? Object.keys(byId) : [];
-    if (!all) {
-      Object.keys(byId).forEach(function (id) {
-        if (text.indexOf(id) >= 0) ids.push(id);
-      });
-    }
-    if (!ids.length) {
-      // default: first named or all
-      ids = Object.keys(byId);
-      log('(no actor named — applying to all)');
-    }
-    var dest = null;
-    if (text.indexOf('boardroom') >= 0 || text.indexOf('meeting') >= 0) dest = MARKS.boardroom;
-    else if (text.indexOf('couch') >= 0 || text.indexOf('break') >= 0) dest = MARKS.couch;
-    else if (text.indexOf('center') >= 0 || text.indexOf('gather') >= 0) dest = MARKS.center;
-    else if (text.indexOf('camera') >= 0 || text.indexOf('lens') >= 0) dest = MARKS.camera;
+
+    var waitM = text.match(/^wait\s+([\d.]+)/);
+    if (waitM) return { type: 'wait', sec: parseFloat(waitM[1]) || 1 };
+
+    var ids = resolveActors(text);
+    var dest = resolveMark(text, null);
 
     ids.forEach(function (id, i) {
       var n = byId[id];
       if (!n) return;
       var d = n.userData;
-      if (text.indexOf('idle') >= 0 || text.indexOf('stop') >= 0) {
+      if (/\bidle\b|\bstop\b/.test(text)) {
         d.target = null; d.action = 'idle'; return;
       }
-      if (text.indexOf('face camera') >= 0 || text.indexOf('look at camera') >= 0) {
+      if (/\bface\b|\blook at camera\b|\blook camera\b/.test(text)) {
         d.target = null; d.action = 'face_cam';
         var dx = filmCam.position.x - n.position.x;
         var dz = filmCam.position.z - n.position.z;
         n.rotation.y = Math.atan2(dx, dz);
         return;
       }
-      if (text.indexOf('wave') >= 0) {
+      if (/\bwave\b/.test(text)) {
         d.action = 'wave';
-        setTimeout(function () { d.action = 'idle'; }, 2000);
+        setTimeout(function () { if (d.action === 'wave') d.action = 'idle'; }, 2000);
         return;
       }
-      if (text.indexOf('talk') >= 0) {
+      if (/\btalk\b|\bspeak\b/.test(text)) {
         d.action = 'talk';
-        setTimeout(function () { d.action = 'idle'; }, 3000);
+        setTimeout(function () { if (d.action === 'talk') d.action = 'idle'; }, 3000);
         return;
       }
-      if (text.indexOf('walk') >= 0 || text.indexOf('go') >= 0 || text.indexOf('gather') >= 0 || dest) {
-        var mark = dest;
-        if (!mark && text.indexOf('desk') >= 0) mark = d.home;
-        if (!mark) mark = MARKS.center;
-        // stagger gather
-        var ox = (i % 3) * 0.6 - 0.6;
-        var oz = Math.floor(i / 3) * 0.5;
+      if (/\bwalk\b|\bgo\b|\bgather\b|\bto\b/.test(text) || dest) {
+        var mark = dest || resolveMark(text, d.home) || MARKS.center;
+        if (/\bdesk\b|\bhome\b/.test(text)) mark = d.home;
+        var ox = (i % 3) * 0.55 - 0.55;
+        var oz = Math.floor(i / 3) * 0.45;
         d.target = new THREE.Vector3(mark[0] + ox, 0, mark[1] + oz);
         d.action = 'walk';
       }
     });
+    return { type: 'cmd' };
+  }
+
+  // --- Script / shot list runner ---
+  var scriptQueue = [];
+  var scriptRunning = false;
+  var scriptIndex = 0;
+  var waitUntil = 0;
+
+  function parseScript(raw) {
+    return (raw || '').split(/\n|;/).map(function (l) { return l.trim(); }).filter(Boolean);
+  }
+  function renderShots() {
+    var el = document.getElementById('shots');
+    if (!scriptQueue.length) { el.innerHTML = ''; return; }
+    el.innerHTML = scriptQueue.map(function (line, i) {
+      var cls = (scriptRunning && i === scriptIndex) ? ' class="on"' : '';
+      return '<div' + cls + '>' + (i + 1) + '. ' + line + '</div>';
+    }).join('');
+  }
+  function runScript() {
+    var lines = parseScript(document.getElementById('prompt').value);
+    if (!lines.length) { log('No script lines'); return; }
+    scriptQueue = lines;
+    scriptIndex = 0;
+    scriptRunning = true;
+    waitUntil = 0;
+    renderShots();
+    log('SCRIPT start (' + lines.length + ' beats)');
+  }
+  function stopScript() {
+    scriptRunning = false;
+    renderShots();
+    log('SCRIPT stop');
+  }
+  function tickScript(now) {
+    if (!scriptRunning) return;
+    if (now < waitUntil) return;
+    if (scriptIndex >= scriptQueue.length) {
+      scriptRunning = false;
+      renderShots();
+      log('SCRIPT done');
+      return;
+    }
+    var res = directLine(scriptQueue[scriptIndex]);
+    if (res && res.type === 'wait') {
+      waitUntil = now + res.sec * 1000;
+    } else {
+      waitUntil = now + 400; // brief beat gap
+    }
+    scriptIndex++;
+    renderShots();
   }
 
   document.getElementById('prompt').addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') {
-      direct(this.value);
+    if (e.key === 'Enter' && !e.shiftKey && this.tagName === 'INPUT') {
+      e.preventDefault();
+      directLine(this.value);
       this.value = '';
     }
   });
+  document.getElementById('btnRun').onclick = runScript;
+  document.getElementById('btnStop').onclick = stopScript;
+  document.getElementById('btnSample').onclick = function () {
+    document.getElementById('prompt').value =
+      'all gather\nwait 2\nmorgan face camera\nalex wave\nwait 1\nkai talk\nwait 2\nall walk to boardroom';
+    log('Sample script loaded');
+  };
 
-  // Recording via virtual camera (canvas stream = whatever cam is active)
+  // Recording + still fallback
   var mediaRecorder = null;
   var chunks = [];
   var recording = false;
+  function downloadBlob(blob, name) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = name;
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+  }
+  function stillFrame() {
+    try {
+      canvas.toBlob(function (blob) {
+        if (!blob) { log('Still failed'); return; }
+        downloadBlob(blob, 'cubit-studios-still-' + Date.now() + '.png');
+        log('STILL saved (' + Math.round(blob.size / 1024) + ' KB)');
+      }, 'image/png');
+    } catch (err) {
+      // dataURL fallback
+      try {
+        var url = canvas.toDataURL('image/png');
+        var a = document.createElement('a');
+        a.href = url; a.download = 'cubit-studios-still-' + Date.now() + '.png';
+        a.click();
+        log('STILL saved (dataURL)');
+      } catch (e2) {
+        log('Still failed: ' + e2);
+      }
+    }
+  }
+  document.getElementById('btnStill').onclick = stillFrame;
   document.getElementById('btnRec').onclick = function () {
     if (!recording) {
       try {
+        if (!canvas.captureStream) throw new Error('captureStream unsupported');
         var stream = canvas.captureStream(30);
         chunks = [];
-        mediaRecorder = new MediaRecorder(stream, { mimeType: MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm' });
-        mediaRecorder.ondataavailable = function (e) { if (e.data.size) chunks.push(e.data); };
+        var mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+          ? 'video/webm;codecs=vp9'
+          : (MediaRecorder.isTypeSupported('video/webm') ? 'video/webm' : '');
+        mediaRecorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
         mediaRecorder.onstop = function () {
-          var blob = new Blob(chunks, { type: 'video/webm' });
-          var url = URL.createObjectURL(blob);
-          var a = document.createElement('a');
-          a.href = url; a.download = 'cubit-studios-take-' + Date.now() + '.webm';
-          a.click();
+          var blob = new Blob(chunks, { type: mime || 'video/webm' });
+          if (blob.size < 100) {
+            log('Record empty — capturing still instead');
+            stillFrame();
+            return;
+          }
+          downloadBlob(blob, 'cubit-studios-take-' + Date.now() + '.webm');
           log('TAKE saved (' + Math.round(blob.size / 1024) + ' KB)');
+        };
+        mediaRecorder.onerror = function () {
+          log('Recorder error — use Still');
+          stillFrame();
         };
         mediaRecorder.start(200);
         recording = true;
@@ -333,10 +480,11 @@
         this.textContent = '■ Stop';
         log('REC — virtual cam capturing');
       } catch (err) {
-        log('Record failed: ' + err);
+        log('Record unavailable (' + err.message + ') — use Still');
+        stillFrame();
       }
     } else {
-      mediaRecorder.stop();
+      try { mediaRecorder.stop(); } catch (e) {}
       recording = false;
       this.classList.remove('on');
       this.textContent = '● Record';
@@ -465,6 +613,7 @@
   var last = performance.now();
   function frame(now) {
     var dt = Math.min(0.05, (now - last) / 1000); last = now;
+    tickScript(now);
     updateActors(dt); updateFPS(dt);
     var cam = mode === 'fps' ? fpsCam : (mode === 'film' ? filmCam : orbitCam);
     if (mode === 'orbit') orbitCam.lookAt(0, 0.5, 0);
@@ -482,9 +631,9 @@
 
   function enter() {
     document.getElementById('boot').classList.add('hide');
-    log('Stage A live — HQ set');
-    log('Type a direction. Try: all gather · alex walk to boardroom · morgan face camera');
-    document.getElementById('hint').textContent = 'Director prompt · Film cam · Record take';
+    log('Stage A live — CUBIT STUDIOS™ v0.2');
+    log('Load sample or write beats · Run script · Record / Still');
+    document.getElementById('hint').textContent = 'Director script · Film cam · Record or Still';
     setMode('film');
     requestAnimationFrame(frame);
   }
